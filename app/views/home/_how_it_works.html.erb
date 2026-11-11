@@ -1,0 +1,16 @@
+<%# locals: (steps:) %>
+<section id="how-it-works" class="scroll-mt-16 border-y border-line bg-surface" aria-labelledby="how-title">
+  <div class="mx-auto max-w-[1200px] px-4 py-14 sm:px-6">
+    <h2 id="how-title" class="text-2xl font-bold">ประมูลแบบปิดผนึกทำงานอย่างไร</h2>
+    <p class="mt-1 text-ink-2">ไม่ต้องเฝ้าหน้าจอแข่งกดราคา ตัดสินใจครั้งเดียวว่าของชิ้นนี้มีค่าสำหรับคุณเท่าไร</p>
+    <ol class="mt-6 grid gap-4 md:grid-cols-3">
+      <% steps.each.with_index(1) do |step, number| %>
+        <li class="rounded-xl border border-line bg-canvas p-5">
+          <span aria-hidden="true" class="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-on-primary"><%= number %></span>
+          <h3 class="mt-4 font-semibold"><%= step.title %></h3>
+          <p class="mt-1 text-sm text-ink-2"><%= step.body %></p>
+        </li>
+      <% end %>
+    </ol>
+  </div>
+</section>

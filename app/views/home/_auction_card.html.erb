@@ -1,0 +1,20 @@
+<%# locals: (auction:, now:) %>
+<article class="flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface transition-shadow hover:shadow-lg">
+  <div class="relative">
+    <%= image_placeholder(auction.image_label) %>
+    <%= auction_badge(auction, now:) %>
+  </div>
+  <div class="flex flex-1 flex-col p-4">
+    <p class="text-xs text-ink-2"><%= category_label(auction.category) %></p>
+    <h3 class="font-semibold leading-snug"><%= auction.title %></h3>
+    <div class="mt-auto pt-4">
+      <div class="flex items-baseline justify-between gap-2">
+        <span class="text-xs text-ink-2">ราคาเริ่มต้น</span>
+        <span class="text-lg font-bold tabular-nums"><%= baht(auction.starting_price) %></span>
+      </div>
+      <p class="text-xs text-ink-2">
+        <%= auction.live?(now) ? "เสนอแล้ว #{auction.bidder_count} คน" : "เปิดรับราคา #{time_left_label(auction.ends_at, now: auction.starts_at)}" %>
+      </p>
+    </div>
+  </div>
+</article>

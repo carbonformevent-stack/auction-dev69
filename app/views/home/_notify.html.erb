@@ -1,0 +1,16 @@
+<%# ยังไม่มีระบบเก็บอีเมลแจ้งเตือน — ฟอร์มไม่ส่งข้อมูลออกไป แสดงข้อความแจ้งแทน (notify_form_controller.js) %>
+<section class="grid items-center gap-6 rounded-2xl bg-ink p-6 text-surface sm:p-8 lg:grid-cols-2" aria-labelledby="notify-title">
+  <div>
+    <h2 id="notify-title" class="text-xl font-bold">รับแจ้งเตือนเมื่อมีการประมูลใหม่</h2>
+    <p class="mt-1 text-sm text-muted-2">เรากำลังเปิดทดลอง (Beta) ทุกความเห็นช่วยให้เราปรับปรุงได้เร็วขึ้น</p>
+  </div>
+  <form data-controller="notify-form" data-action="submit->notify-form#submit" novalidate>
+    <div class="flex flex-col gap-2 sm:flex-row">
+      <label for="notify-email" class="sr-only">อีเมลของคุณ</label>
+      <input id="notify-email" type="email" required autocomplete="email" placeholder="อีเมลของคุณ"
+             data-notify-form-target="email" class="field-input flex-1 text-ink">
+      <button type="submit" class="btn-primary cursor-pointer">รับแจ้งเตือน</button>
+    </div>
+    <p data-notify-form-target="message" role="status" class="mt-2 min-h-5 text-sm text-muted-2"></p>
+  </form>
+</section>

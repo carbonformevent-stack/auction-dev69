@@ -1,0 +1,69 @@
+<%# locals: (landing:) %>
+<% featured = landing.featured_auction %>
+<section class="mx-auto grid max-w-[1200px] items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-2 lg:gap-16 lg:py-16" aria-labelledby="hero-title">
+  <div>
+    <p class="inline-flex rounded-full bg-primary-soft px-3 py-1 text-[13px] font-medium text-primary-ink">
+      ประมูลแบบปิดผนึก · ทุกชิ้นผ่านการตรวจสอบ
+    </p>
+    <h1 id="hero-title" class="mt-4 text-4xl font-bold leading-tight tracking-tight sm:text-5xl sm:leading-[1.2]">
+      ของสะสมมีค่า<br>ประมูลอย่างโปร่งใส
+    </h1>
+    <p class="mt-4 max-w-xl text-lg text-ink-2">
+      นาฬิกา เครื่องประดับ หนังสือเก่า และภาพวาด ที่ทีมตรวจสอบอนุมัติแล้ว
+      เสนอราคาได้ครั้งเดียวโดยไม่มีใครเห็นราคาของคุณ ผู้เสนอสูงสุดชนะ
+    </p>
+    <div class="mt-7 flex flex-wrap gap-3">
+      <%= link_to "ดูการประมูล", "#auctions", class: "btn-primary" %>
+      <%= link_to "ลงขายสินค้า", new_product_path, class: "btn-outline" %>
+    </div>
+    <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] text-ink-2">
+      <% [ "ตรวจสอบก่อนเปิดประมูล", "ราคาถูกปิดเป็นความลับ", "สมัครฟรี" ].each do |point| %>
+        <li class="flex items-center gap-1.5"><span aria-hidden="true" class="font-bold text-success">✓</span><%= point %></li>
+      <% end %>
+    </ul>
+  </div>
+
+  <div class="space-y-3" aria-label="การประมูลแนะนำ">
+    <article class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+      <div class="relative">
+        <%= image_placeholder(featured.image_label, class_name: "aspect-[16/9]") %>
+        <span class="absolute left-3 top-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-2.5 py-0.5 text-xs font-semibold shadow-sm">
+          <span aria-hidden="true" class="size-2 rounded-full bg-danger"></span>กำลังประมูล
+        </span>
+      </div>
+      <div class="flex items-end justify-between gap-4 p-4">
+        <div class="min-w-0">
+          <p class="text-xs text-ink-2"><%= category_label(featured.category) %></p>
+          <h2 class="font-semibold"><%= featured.title %></h2>
+        </div>
+        <div class="shrink-0 text-right">
+          <p class="text-xs text-ink-2">ปิดใน</p>
+          <p class="text-xl font-bold tabular-nums"
+             data-controller="countdown" data-countdown-ends-at-value="<%= featured.ends_at.iso8601 %>">
+            <%= countdown_text(featured.ends_at, now: landing.now) %>
+          </p>
+        </div>
+      </div>
+      <div class="flex flex-wrap justify-between gap-2 border-t border-line px-4 py-2.5 text-xs text-ink-2">
+        <span>ราคาเริ่มต้น <strong class="text-ink"><%= baht(featured.starting_price) %></strong></span>
+        <span>เสนอแล้ว <%= featured.bidder_count %> คน · ราคาเป็นความลับ</span>
+      </div>
+    </article>
+
+    <div class="grid grid-cols-2 gap-3">
+      <% landing.hero_side_auctions.each do |auction| %>
+        <article class="overflow-hidden rounded-2xl border border-line bg-surface shadow-sm">
+          <%= image_placeholder(auction.image_label) %>
+          <p class="border-t border-line px-3 py-2 text-xs font-semibold">
+            <% if auction.live?(landing.now) %>
+              ปิดใน <%= time_left_label(auction.ends_at, now: landing.now) %>
+            <% else %>
+              เริ่ม <%= thai_weekday_time(auction.starts_at) %>
+            <% end %>
+            <span class="sr-only">· <%= auction.title %></span>
+          </p>
+        </article>
+      <% end %>
+    </div>
+  </div>
+</section>

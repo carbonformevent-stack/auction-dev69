@@ -1,0 +1,19 @@
+<%# locals: (steps:) %>
+<section id="sell" class="grid scroll-mt-20 items-center gap-8 rounded-3xl bg-primary-soft p-6 sm:p-10 lg:grid-cols-2" aria-labelledby="sell-title">
+  <div>
+    <h2 id="sell-title" class="text-2xl font-bold text-primary-ink">มีของสะสมอยากขาย?</h2>
+    <p class="mt-2 text-primary-ink">
+      ลงสินค้าฟรี กำหนดราคาเริ่มต้นเองได้ตั้งแต่ <%= baht(Product::PRICE_RANGE.min) %> ถึง <%= baht(Product::PRICE_RANGE.max) %>
+      แนบรูปได้สูงสุด <%= Product::MAX_IMAGES %> รูป พร้อมใบรับรอง (ถ้ามี)
+    </p>
+    <%= link_to "เริ่มลงขายสินค้า", new_product_path, class: "btn-primary mt-6" %>
+  </div>
+  <ol class="space-y-3">
+    <% steps.each.with_index(1) do |step, number| %>
+      <li class="flex items-center gap-3 rounded-xl bg-surface px-4 py-3 text-sm">
+        <span aria-hidden="true" class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-soft text-xs font-bold text-primary-ink"><%= number %></span>
+        <span><strong class="font-semibold"><%= step.title %></strong> <span class="text-ink-2">· <%= step.body %></span></span>
+      </li>
+    <% end %>
+  </ol>
+</section>

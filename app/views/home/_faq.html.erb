@@ -1,0 +1,17 @@
+<%# locals: (faqs:) %>
+<%# ใช้ <details> จึงเปิด/ปิดได้โดยไม่ต้องมี JS — ข้อแรกเปิดไว้ %>
+<section id="faq" class="mx-auto max-w-3xl scroll-mt-20" aria-labelledby="faq-title">
+  <h2 id="faq-title" class="text-center text-2xl font-bold">คำถามที่พบบ่อย</h2>
+  <div class="mt-6 space-y-3">
+    <% faqs.each_with_index do |faq, index| %>
+      <details class="group rounded-xl border border-line bg-surface" <%= "open" if index.zero? %>>
+        <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 font-medium [&::-webkit-details-marker]:hidden">
+          <%= faq.question %>
+          <span aria-hidden="true" class="text-lg font-semibold text-primary group-open:hidden">+</span>
+          <span aria-hidden="true" class="hidden text-lg font-semibold text-primary group-open:inline">−</span>
+        </summary>
+        <p class="border-t border-line px-4 py-3 text-sm text-ink-2"><%= faq.answer %></p>
+      </details>
+    <% end %>
+  </div>
+</section>
