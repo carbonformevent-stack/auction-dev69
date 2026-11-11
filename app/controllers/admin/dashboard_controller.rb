@@ -1,7 +1,8 @@
 module Admin
+  # ยังไม่มีหน้าภาพรวม (การจัดประมูลมาใน M2) — เข้า /admin แล้วไปคิวรอตรวจเลย
   class DashboardController < BaseController
     def show
-      @pending_count = Product.pending_review.count
+      redirect_to admin_products_path
     end
   end
 end

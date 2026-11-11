@@ -1,0 +1,16 @@
+<%# locals: (type:, message:) %>
+<%# บรรทัดแรกของข้อความ = หัวเรื่อง (ตัวหนา) บรรทัดที่เหลือ = รายละเอียด %>
+<% alert = type == "alert" %>
+<% title, body = message.to_s.split("\n", 2) %>
+<div role="<%= alert ? "alert" : "status" %>" data-controller="dismiss"
+     class="pointer-events-auto flex items-start gap-3 rounded-xl border bg-surface p-4 shadow-lg <%= alert ? "border-danger" : "border-line" %>">
+  <span aria-hidden="true" class="flex size-6 shrink-0 items-center justify-center rounded-full text-sm font-bold <%= alert ? "bg-danger-soft text-danger" : "bg-success-soft text-success" %>"><%= alert ? "!" : "✓" %></span>
+  <div class="min-w-0 flex-1">
+    <p class="font-semibold break-words"><%= title %></p>
+    <% if body.present? %>
+      <p class="text-sm break-words text-ink-2"><%= body %></p>
+    <% end %>
+  </div>
+  <button type="button" data-action="dismiss#close" aria-label="ปิดการแจ้งเตือน"
+          class="-m-2.5 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-xl text-ink-2 hover:bg-muted">×</button>
+</div>

@@ -1,0 +1,31 @@
+<%# locals: (variant: :avatar) %>
+<%# เมนูบัญชี — <details> จึงใช้ได้โดยไม่ต้องมี JS; avatar = desktop, burger = app bar มือถือ %>
+<% burger = variant == :burger %>
+<details class="relative">
+  <summary
+    aria-label="<%= burger ? "เปิดเมนู" : "บัญชีของฉัน" %>"
+    class="flex size-11 cursor-pointer list-none items-center justify-center font-semibold [&::-webkit-details-marker]:hidden <%= burger ? "rounded-lg text-ink hover:bg-muted" : "rounded-full bg-primary-soft text-primary-ink" %>">
+    <% if burger %>
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <% else %>
+      <%= avatar_initial(current_user) %>
+    <% end %>
+  </summary>
+
+  <div class="absolute z-40 mt-2 w-60 rounded-xl border border-line bg-surface p-2 shadow-lg <%= burger ? "left-0" : "right-0" %>">
+    <p class="truncate px-3 py-1.5 text-sm font-semibold"><%= current_user.display_name %></p>
+    <p class="truncate px-3 pb-2 text-[13px] text-ink-2"><%= current_user.email %></p>
+    <nav class="flex flex-col border-t border-line pt-1 text-sm font-medium" aria-label="เมนูบัญชี">
+      <%= link_to "สินค้าของฉัน", products_path, class: nav_link_classes %>
+      <% if current_user.admin? %>
+        <% if admin_area? %>
+          <%= link_to "กลับหน้าผู้ใช้", products_path, class: nav_link_classes %>
+        <% else %>
+          <%= link_to "แอดมิน", admin_products_path, class: nav_link_classes %>
+        <% end %>
+      <% end %>
+      <%= button_to "ออกจากระบบ", destroy_user_session_path, method: :delete,
+            class: "#{nav_link_classes} w-full cursor-pointer text-left text-ink-2" %>
+    </nav>
+  </div>
+</details>

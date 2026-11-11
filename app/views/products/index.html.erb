@@ -1,4 +1,7 @@
 <% content_for :title, "สินค้าของฉัน" %>
+<% content_for :mobile_bar do %>
+  <%= render "shared/mobile_bar", title: "สินค้าของฉัน", extra: "โหมดผู้ขาย" %>
+<% end %>
 
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>

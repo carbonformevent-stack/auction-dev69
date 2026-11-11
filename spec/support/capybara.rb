@@ -19,6 +19,8 @@ end
 
 Capybara.javascript_driver = :cuprite
 Capybara.default_max_wait_time = 3
+# ค้นปุ่ม/ลิงก์ด้วย aria-label ได้ — ตรงกับชื่อที่ screen reader อ่านให้ผู้ใช้
+Capybara.enable_aria_label = true
 Capybara.server = :puma, { Silent: true }
 
 module BrowserHelpers

@@ -19,7 +19,7 @@ RSpec.describe "Products::Submissions" do
         post product_submission_path(product)
 
         expect(product.reload).to be_pending_review
-        expect(flash[:notice]).to include("ส่งตรวจแล้ว")
+        expect(flash[:notice]).to include("ส่งตรวจสอบแล้ว", product.title)
       end
 
       it "explains what is missing (AC2)" do

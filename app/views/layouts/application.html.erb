@@ -28,28 +28,41 @@
   </head>
 
   <body class="min-h-screen bg-canvas font-sans text-base leading-relaxed text-ink">
-    <header class="border-b border-line bg-surface">
-      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
-        <%= link_to root_path, class: "flex items-center gap-2.5 text-lg font-bold text-ink no-underline" do %>
-          <span aria-hidden="true" class="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-white">ป</span>
-          ประมูลสินค้าสะสม
-        <% end %>
+    <%= yield :mobile_bar %>
+
+    <header class="border-b border-line bg-surface <%= "hidden sm:block" if content_for?(:mobile_bar) %>">
+      <div class="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+        <div class="flex items-center gap-3">
+          <%= link_to root_path, class: "flex items-center gap-2.5 text-lg font-bold text-ink no-underline" do %>
+            <span aria-hidden="true" class="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-on-primary">ป</span>
+            ประมูลสินค้าสะสม
+          <% end %>
+          <% if admin_area? %>
+            <span class="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-surface">แอดมิน</span>
+          <% end %>
+        </div>
+
         <% if user_signed_in? %>
-          <nav aria-label="เมนูหลัก" class="flex flex-wrap items-center gap-1 text-sm font-medium">
-            <%= link_to "สินค้าของฉัน", products_path, class: "flex min-h-11 items-center rounded-lg px-3 text-ink no-underline hover:bg-muted" %>
-            <% if current_user.admin? %>
-              <%= link_to "คิวรอตรวจ", admin_products_path, class: "flex min-h-11 items-center rounded-lg px-3 text-ink no-underline hover:bg-muted" %>
-            <% end %>
-            <%= button_to "ออกจากระบบ", destroy_user_session_path, method: :delete, class: "min-h-11 cursor-pointer rounded-lg px-3 text-ink-2 hover:bg-muted" %>
-          </nav>
+          <div class="flex items-center gap-2">
+            <nav aria-label="<%= admin_area? ? "เมนูแอดมิน" : "เมนูหลัก" %>" class="flex flex-wrap items-center gap-1 text-sm font-medium">
+              <% if admin_area? %>
+                <%= link_to "คิวตรวจสอบ", admin_products_path,
+                      aria: { current: ("page" if controller_path.start_with?("admin/products")) },
+                      class: nav_link_classes(current: controller_path.start_with?("admin/products")) %>
+                <%= link_to "กลับหน้าผู้ใช้", products_path, class: nav_link_classes %>
+              <% elsif current_user.admin? %>
+                <%= link_to "แอดมิน", admin_products_path, class: nav_link_classes %>
+              <% end %>
+            </nav>
+            <%= render "shared/account_menu", variant: :avatar %>
+          </div>
         <% end %>
       </div>
     </header>
 
-    <main class="mx-auto max-w-6xl px-4 pt-7 pb-12 sm:px-6">
-      <% flash.each do |type, message| %>
-        <p role="status" class="mb-4 rounded-xl border px-4 py-3 text-sm <%= type.to_s == "alert" ? "border-danger/30 bg-danger-soft text-danger-ink" : "border-success/30 bg-success-soft text-success" %>"><%= message %></p>
-      <% end %>
+    <%= render "shared/toasts" %>
+
+    <main class="mx-auto max-w-[1200px] px-4 pt-7 pb-12 sm:px-6">
       <%= yield %>
     </main>
   </body>

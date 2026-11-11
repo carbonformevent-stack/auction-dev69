@@ -4,7 +4,8 @@ module Products
     def create
       product = current_user.products.find(params[:product_id])
       Products::Submit.call(product: product, user: current_user)
-      redirect_to product, notice: "ส่งตรวจแล้ว สินค้าอยู่ในคิวของทีมตรวจสอบ"
+      # บรรทัดแรกเป็นหัวเรื่องของ toast บรรทัดที่สองเป็นรายละเอียด
+      redirect_to product, notice: "ส่งตรวจสอบแล้ว\n#{product.title} อยู่ในคิวของทีมตรวจสอบ"
     rescue ActiveRecord::RecordInvalid => e
       redirect_to product, alert: "ส่งตรวจไม่ได้: #{e.record.errors.full_messages.to_sentence}"
     rescue Product::InvalidTransition
