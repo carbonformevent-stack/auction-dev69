@@ -97,7 +97,11 @@ class Product < ApplicationRecord
     updated = self.class.where(id: id, status: Array(from)).update_all(changes)
     raise InvalidTransition if updated.zero?
 
+    # Active Storage อัปโหลดไฟล์ตอน after_commit แต่ reload ล้างรายการไฟล์ที่รออัปโหลดทิ้ง
+    # (เช่น "ส่งตรวจสอบ" จากฟอร์มที่ save! + transition! ใน transaction เดียว) — เก็บไว้แล้วคืนกลับ
+    pending_uploads = attachment_changes.dup
     reload
+    attachment_changes.merge!(pending_uploads)
   end
 
   private
