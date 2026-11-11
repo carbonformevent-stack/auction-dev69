@@ -7,10 +7,10 @@
 
 | Milestone | วันที่ | เป้าหมาย | เกณฑ์สำเร็จ | สถานะ |
 |---|---|---|---|---|
-| M0 Groundwork | 2026-11-11 | GitHub, standard, CI, Rails + SQLite, Auth (Keycloak) + Role (user/admin) | ทีม merge PR แรกผ่าน CI ได้ | 🟡 5/7 — เหลือ #8 (Railway + Keycloak production), #42 (logout ไม่ได้) |
+| M0 Groundwork | 2026-11-11 | GitHub, standard, CI, Rails + SQLite, Auth (Keycloak) + Role (user/admin) | ทีม merge PR แรกผ่าน CI ได้ | ✅ ปิดแล้ว — ย้าย #8 ไป M3, #42 ไป M2 |
 | M1 ลงสินค้าและอนุมัติ | 2026-11-12 | ผู้ขายลงสินค้า, Admin approve/reject | สินค้าเดินครบทุกสถานะตั้งแต่ draft ถึง approved | ✅ เสร็จ 12/12 (#32, UI ตาม design #34) |
-| M2 จัดและประมูล FPSBA | 2026-11-13 | Admin สร้างการประมูล, ผู้ใช้เสนอราคาแบบปิดผนึก | เสนอราคาได้ตามกติกาครบทุกข้อ | 🔵 กำลังทำ — #23 เริ่มแล้ว (#36 กรองราคาเสนอออกจาก log) |
-| M3 ปิดการประมูลและขึ้นระบบ | 2026-11-14 | ปิดอัตโนมัติ, ประกาศผู้ชนะ, แจ้งเตือนอีเมล, deploy production, analytics | Release v0.1 Beta มีการประมูลจริงจบอย่างน้อย 1 รอบ | ⚪ ยังไม่เริ่ม — web service บน Railway ขึ้นแล้ว แต่ยังไม่มี Keycloak production (login ไม่ได้) |
+| M2 จัดและประมูล FPSBA | 2026-11-13 | Admin สร้างการประมูล, ผู้ใช้เสนอราคาแบบปิดผนึก | เสนอราคาได้ตามกติกาครบทุกข้อ | 🔵 กำลังทำ — #23 เริ่มแล้ว (#36 กรองราคาเสนอออกจาก log), รับ #42 logout ไม่ได้ มาจาก M0 |
+| M3 ปิดการประมูลและขึ้นระบบ | 2026-11-14 | ปิดอัตโนมัติ, ประกาศผู้ชนะ, แจ้งเตือนอีเมล, deploy production, analytics | Release v0.1 Beta มีการประมูลจริงจบอย่างน้อย 1 รอบ | ⚪ ยังไม่เริ่ม — web service บน Railway ขึ้นแล้ว แต่ยังไม่มี Keycloak production (login ไม่ได้) — #8 ย้ายมาจาก M0 |
 | M4 Feedback & Hardening | — | แก้ปัญหาจาก Beta, UX, security, performance | (tentative) | ⚪ |
 | M5 ชำระเงินและส่งมอบ | — | Payment gateway, มัดจำ, ติดตามการจัดส่ง | (tentative) | ⚪ |
 | M6 วิธีประมูลเพิ่มเติม | — | English, Vickrey, Dutch | (tentative) | ⚪ |
