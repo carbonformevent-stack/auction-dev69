@@ -76,6 +76,17 @@ RSpec.describe Product do
     it("accepts 7 days") { product.desired_duration_minutes = 10_080; expect(product).to be_valid }
     it("rejects 7 days 1 hour") { product.desired_duration_minutes = 10_140; expect(errors_on(:desired_duration_minutes)).to include(duration_error) }
 
+    it "offers 5 days as a duration choice and accepts it" do
+      product.desired_duration_minutes = 7200
+
+      expect(Product::DURATION_CHOICES).to include(7200)
+      expect(product).to be_valid
+    end
+
+    it "keeps the duration choices sorted ascending" do
+      expect(Product::DURATION_CHOICES).to eq(Product::DURATION_CHOICES.sort)
+    end
+
     it "is enforced by a database check constraint" do
       product.save!
 

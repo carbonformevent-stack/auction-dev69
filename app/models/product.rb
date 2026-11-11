@@ -10,7 +10,7 @@ class Product < ApplicationRecord
 
   PRICE_RANGE = 1..20_000
   DURATION_RANGE = 60..10_080 # นาที: 1 ชั่วโมง – 7 วัน
-  DURATION_CHOICES = [ 60, 360, 1440, 4320, 10_080 ].freeze
+  DURATION_CHOICES = [ 60, 360, 1440, 4320, 7200, 10_080 ].freeze
   MAX_IMAGES = 12
   MAX_IMAGE_SIZE = 5.megabytes
   MAX_CERTIFICATE_SIZE = 10.megabytes
