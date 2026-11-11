@@ -137,4 +137,4 @@ Railway build จาก `Dockerfile` ตามค่าใน `railway.json` (he
 - [docs/coding-standard.md](docs/coding-standard.md)
 - [docs/definition-of-ready.md](docs/definition-of-ready.md) / [docs/definition-of-done.md](docs/definition-of-done.md)
 - [docs/architecture/auction-design.md](docs/architecture/auction-design.md) — การออกแบบการประมูล
-- UI/UX: [Design canvas](https://claude.ai/artifact/QQMiqYfRigdsJ1rj4E4jLn) — แนวทางที่เลือก: **B · Modern marketplace**
+- UI/UX: [Design canvas](https://claude.ai/artifact/QQMiqYfRigdsJ1rj4E4jLn#page-dcb81aee8d83) — **แหล่งอ้างอิงเดียว** ของการออกแบบ UI (แนวทาง B · Modern marketplace) ดูข้อกำหนดใน [coding-standard.md](docs/coding-standard.md#ui-design-ข้อกำหนดกลาง)

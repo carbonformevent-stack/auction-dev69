@@ -16,4 +16,5 @@
 - [ ] Migration รันได้ทั้ง up และ down
 - [ ] ตรวจสิทธิ์ครบ (guest / user / เจ้าของ / admin)
 - [ ] หน้าจอใช้งานได้ที่ความกว้างมือถือ (ถ้ามี UI)
+- [ ] UI ตรงกับ [Design canvas](https://claude.ai/artifact/QQMiqYfRigdsJ1rj4E4jLn#page-dcb81aee8d83) — ส่วนที่ต่างมีเหตุผลใน PR (ดู [coding-standard.md](coding-standard.md#ui-design-ข้อกำหนดกลาง))
 - [ ] Merge เข้า `main` แล้ว และ issue ปิดอัตโนมัติผ่าน `Closes #`

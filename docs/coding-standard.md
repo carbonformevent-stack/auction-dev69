@@ -77,6 +77,14 @@ end
 - ให้ย้ายไป model method (`product.editable_by?(user)`), helper (`status_badge(product)`), หรือ presenter
 - Controller เตรียม data ให้ครบ และใช้ `includes` กัน N+1
 
+## UI Design (ข้อกำหนดกลาง)
+
+- **แหล่งอ้างอิงเดียว** ของการออกแบบ UI ทุกหน้าคือ [Design canvas](https://claude.ai/artifact/QQMiqYfRigdsJ1rj4E4jLn#page-dcb81aee8d83) — แนวทาง **B · Modern marketplace**
+- ห้ามออกแบบหน้าใหม่หรือเปลี่ยน layout, สี, ตัวอักษร, component ตามแหล่งอื่น (screenshot, เว็บอื่น, ความชอบส่วนตัว, ข้อเสนอของ AI) — ถ้า design ยังไม่มีหน้าที่ต้องทำ ให้เพิ่มหน้าใน design canvas ก่อน แล้วค่อยลงมือ
+- สี ระยะ และตัวอักษรใช้ token ใน [app/assets/tailwind/application.css](../app/assets/tailwind/application.css) ซึ่งต้องตรงกับ design — ห้าม hard-code ค่าสีหรือขนาดใน view
+- ถ้าจำเป็นต้องทำต่างจาก design (เช่น ขัดกับ Acceptance Criteria หรือยังไม่มี backend รองรับ) ให้เขียนเหตุผลไว้ใน PR หัวข้อ "สิ่งที่ไม่ตาม design"
+- PR ที่มี UI ให้แนบ screenshot เทียบกับหน้าใน design canvas
+
 ## Database
 
 - ทุก business rule ที่สำคัญต้องมี constraint ใน DB ด้วย ไม่ใช่แค่ validation (เช่น unique index `bids(auction_id, user_id)`, `NOT NULL`, check constraint ช่วงราคา)
