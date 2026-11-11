@@ -4,8 +4,24 @@ Rails.application.routes.draw do
   get "sign_in", to: "sessions#new", as: :new_user_session
   delete "sign_out", to: "sessions#destroy", as: :destroy_user_session
 
+  # "สินค้าของฉัน" — ผู้ขายเห็นและจัดการเฉพาะสินค้าของตัวเอง
+  resources :products do
+    scope module: :products do
+      resource :submission, only: :create
+      resources :images, only: :destroy
+    end
+  end
+
   namespace :admin do
     root "dashboard#show"
+
+    # index = คิวรอตรวจ, show = หน้าตรวจสินค้า
+    resources :products, only: %i[index show] do
+      scope module: :products do
+        resource :approval, only: :create
+        resource :rejection, only: :create
+      end
+    end
   end
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

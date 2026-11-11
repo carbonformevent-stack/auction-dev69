@@ -1,0 +1,24 @@
+<% content_for :title, "แก้ไขสินค้า" %>
+
+<div class="mx-auto max-w-3xl">
+  <%= link_to "← กลับไปหน้าสินค้า", product_path(@product), class: "text-sm text-primary" %>
+  <h1 class="mt-2 mb-6 text-[28px] font-bold">แก้ไขสินค้า</h1>
+
+  <% if @product.images.any?(&:persisted?) %>
+    <section class="card mb-6">
+      <h2 class="mb-3 text-lg font-semibold">ลบรูป</h2>
+      <ul class="grid grid-cols-3 gap-3 sm:grid-cols-6">
+        <% @product.images.select(&:persisted?).each do |image| %>
+          <li class="flex flex-col gap-1.5">
+            <%= product_thumb(image, alt: image.filename.to_s, class_name: "aspect-square w-full") %>
+            <%= button_to "ลบรูป", product_image_path(@product, image), method: :delete,
+                  class: "w-full cursor-pointer rounded-lg border border-line py-1.5 text-sm text-danger-ink hover:border-danger",
+                  form: { data: { turbo_confirm: "ลบรูปนี้?" } } %>
+          </li>
+        <% end %>
+      </ul>
+    </section>
+  <% end %>
+
+  <%= render "form", product: @product %>
+</div>

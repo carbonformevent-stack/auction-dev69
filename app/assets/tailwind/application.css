@@ -1,1 +1,62 @@
 @import "tailwindcss";
+
+/* โทนสีตาม Design canvas แนว B · Modern marketplace */
+@theme {
+  --font-sans: "IBM Plex Sans", "IBM Plex Sans Thai", ui-sans-serif, system-ui, sans-serif;
+  --color-primary: hsl(310 93% 34%);
+  --color-primary-hover: hsl(310 93% 29%);
+  --color-primary-soft: hsl(313 55% 94%);
+  --color-primary-ink: hsl(310 70% 22%);
+  --color-surface: #fff;
+  --color-canvas: hsl(0 0% 98%);
+  --color-muted: hsl(240 5% 96%);
+  --color-muted-2: hsl(240 5% 93%);
+  --color-ink: hsl(240 6% 10%);
+  --color-ink-2: hsl(240 4% 42%);
+  --color-line: hsl(240 6% 90%);
+  --color-line-strong: hsl(240 5% 70%);
+  --color-accent-soft: hsl(38 100% 93%);
+  --color-accent-ink: hsl(28 85% 16%);
+  --color-success: hsl(157 78% 27%);
+  --color-success-soft: hsl(152 55% 94%);
+  --color-danger: hsl(0 74% 45%);
+  --color-danger-soft: hsl(0 86% 97%);
+  --color-danger-ink: hsl(0 70% 32%);
+  --color-neutral-ink: hsl(240 5% 32%);
+}
+
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-semibold no-underline transition-colors;
+}
+
+@utility btn-primary {
+  @apply btn bg-primary text-white hover:bg-primary-hover;
+}
+
+@utility btn-secondary {
+  @apply btn border border-line bg-surface text-ink hover:border-line-strong;
+}
+
+@utility btn-danger {
+  @apply btn border border-danger/30 bg-danger-soft text-danger-ink hover:border-danger;
+}
+
+@utility card {
+  @apply rounded-xl border border-line bg-surface p-5;
+}
+
+@utility field-label {
+  @apply mb-1 block text-sm font-semibold;
+}
+
+@utility field-input {
+  @apply w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base focus:border-primary focus:outline-2 focus:outline-primary/25;
+}
+
+@utility field-error {
+  @apply mt-1 text-sm text-danger-ink;
+}
+
+@utility field-hint {
+  @apply mt-1 text-sm text-ink-2;
+}

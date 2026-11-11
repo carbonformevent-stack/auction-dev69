@@ -1,0 +1,22 @@
+<%# show_reviewer: Admin เห็นชื่อผู้ตรวจ ผู้ขายไม่เห็น %>
+<section class="card">
+  <h2 class="mb-3 text-lg font-semibold">ประวัติการตรวจสอบ</h2>
+  <% if product.reviews.any? %>
+    <ol class="flex flex-col gap-3 text-sm">
+      <% product.reviews.each_with_index do |review, index| %>
+        <li class="border-l-0">
+          <p>
+            <strong>รอบ <%= index + 1 %> · <%= decision_label(review) %></strong>
+            <span class="text-ink-2">
+              <% if show_reviewer %>— <%= review.reviewer.display_name %><% end %>
+              · <%= thai_time(review.created_at) %>
+            </span>
+          </p>
+          <% if review.reason.present? %><p class="mt-0.5 whitespace-pre-line text-ink-2">“<%= review.reason %>”</p><% end %>
+        </li>
+      <% end %>
+    </ol>
+  <% else %>
+    <p class="text-sm text-ink-2">ยังไม่มีการตรวจสอบ</p>
+  <% end %>
+</section>
