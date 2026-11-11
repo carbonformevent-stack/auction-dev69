@@ -1,0 +1,38 @@
+<% content_for :title, "ตรวจสอบ: #{@product.title}" %>
+
+<%= link_to "← คิวรอตรวจสอบ", admin_products_path, class: "text-sm text-primary" %>
+
+<div class="mt-2 flex flex-wrap items-start justify-between gap-3">
+  <div class="min-w-0">
+    <p class="text-sm text-ink-2"><%= category_label(@product.category) %> · ผู้ขาย <%= @product.seller.display_name %> (<%= @product.seller.email %>)</p>
+    <h1 class="text-[28px] leading-snug font-bold break-words"><%= @product.title %></h1>
+  </div>
+  <%= status_badge(@product) %>
+</div>
+
+<div class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
+  <div class="flex min-w-0 flex-col gap-6">
+    <%= render "products/details", product: @product %>
+  </div>
+
+  <aside class="flex flex-col gap-6">
+    <% if @product.pending_review? %>
+      <section class="card flex flex-col gap-4" aria-label="ตัดสินผลการตรวจ">
+        <h2 class="text-lg font-semibold">ผลการตรวจ</h2>
+        <%= button_to "อนุมัติ", admin_product_approval_path(@product), class: "btn-primary w-full cursor-pointer",
+              form: { data: { turbo_confirm: "อนุมัติสินค้านี้?" } } %>
+
+        <%= form_with url: admin_product_rejection_path(@product), scope: :rejection, class: "flex flex-col gap-2" do |f| %>
+          <%= f.label :reason, "เหตุผลที่ไม่อนุมัติ", class: "field-label" %>
+          <%= f.text_area :reason, rows: 4, maxlength: 1000, required: true, class: "field-input",
+                placeholder: "เช่น รูปหน้าปัดไม่ชัด ขอรูปกลไกภายใน" %>
+          <p class="field-hint">ผู้ขายจะเห็นข้อความนี้ · ไม่เกิน 1,000 ตัวอักษร</p>
+          <%= f.submit "ไม่อนุมัติ", class: "btn-danger cursor-pointer" %>
+        <% end %>
+      </section>
+    <% end %>
+
+    <%= render "products/summary", product: @product %>
+    <%= render "products/history", product: @product, show_reviewer: true %>
+  </aside>
+</div>

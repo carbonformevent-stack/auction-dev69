@@ -18,15 +18,37 @@
     <link rel="icon" href="/icon.svg" type="image/svg+xml">
     <link rel="apple-touch-icon" href="/icon.png">
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+
     <%# Includes all stylesheet files in app/assets/stylesheets %>
     <%= stylesheet_link_tag :app, "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main class="container mx-auto mt-28 px-5">
+  <body class="min-h-screen bg-canvas font-sans text-base leading-relaxed text-ink">
+    <header class="border-b border-line bg-surface">
+      <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+        <%= link_to root_path, class: "flex items-center gap-2.5 text-lg font-bold text-ink no-underline" do %>
+          <span aria-hidden="true" class="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-white">ป</span>
+          ประมูลสินค้าสะสม
+        <% end %>
+        <% if user_signed_in? %>
+          <nav aria-label="เมนูหลัก" class="flex flex-wrap items-center gap-1 text-sm font-medium">
+            <%= link_to "สินค้าของฉัน", products_path, class: "flex min-h-11 items-center rounded-lg px-3 text-ink no-underline hover:bg-muted" %>
+            <% if current_user.admin? %>
+              <%= link_to "คิวรอตรวจ", admin_products_path, class: "flex min-h-11 items-center rounded-lg px-3 text-ink no-underline hover:bg-muted" %>
+            <% end %>
+            <%= button_to "ออกจากระบบ", destroy_user_session_path, method: :delete, class: "min-h-11 cursor-pointer rounded-lg px-3 text-ink-2 hover:bg-muted" %>
+          </nav>
+        <% end %>
+      </div>
+    </header>
+
+    <main class="mx-auto max-w-6xl px-4 pt-7 pb-12 sm:px-6">
       <% flash.each do |type, message| %>
-        <p class="mb-4 rounded border px-4 py-2 flash-<%= type %>"><%= message %></p>
+        <p role="status" class="mb-4 rounded-xl border px-4 py-3 text-sm <%= type.to_s == "alert" ? "border-danger/30 bg-danger-soft text-danger-ink" : "border-success/30 bg-success-soft text-success" %>"><%= message %></p>
       <% end %>
       <%= yield %>
     </main>

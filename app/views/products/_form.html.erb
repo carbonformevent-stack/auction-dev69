@@ -1,0 +1,85 @@
+<%= form_with model: product, class: "flex flex-col gap-6" do |f| %>
+  <%= render "shared/form_errors", record: product %>
+
+  <section class="card flex flex-col gap-5">
+    <h2 class="text-lg font-semibold">ข้อมูลสินค้า</h2>
+
+    <div>
+      <%= f.label :category, "ประเภทสินค้า", class: "field-label" %>
+      <%= f.select :category, category_options, { include_blank: "เลือกประเภท" }, class: "field-input", required: true %>
+      <% product.errors[:category].each do |message| %><p class="field-error"><%= message %></p><% end %>
+    </div>
+
+    <div>
+      <%= f.label :title, "ชื่อสินค้า", class: "field-label" %>
+      <%= f.text_field :title, class: "field-input", maxlength: 150, required: true %>
+      <p class="field-hint">ไม่เกิน 150 ตัวอักษร</p>
+      <% product.errors[:title].each do |message| %><p class="field-error"><%= message %></p><% end %>
+    </div>
+
+    <div>
+      <%= f.label :description, "รายละเอียด", class: "field-label" %>
+      <%= f.text_area :description, rows: 6, class: "field-input", maxlength: 5000, required: true %>
+      <p class="field-hint">สภาพ ที่มา ตำหนิ — ไม่เกิน 5,000 ตัวอักษร</p>
+      <% product.errors[:description].each do |message| %><p class="field-error"><%= message %></p><% end %>
+    </div>
+
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div>
+        <%= f.label :starting_price, "ราคาเริ่มต้น (บาท)", class: "field-label" %>
+        <%= f.number_field :starting_price, min: 1, max: 20_000, step: 1, class: "field-input", required: true %>
+        <p class="field-hint">1–20,000 บาท จำนวนเต็ม</p>
+        <% product.errors[:starting_price].each do |message| %><p class="field-error"><%= message %></p><% end %>
+      </div>
+      <div>
+        <%= f.label :desired_duration_minutes, "ระยะเวลาประมูลที่ต้องการ", class: "field-label" %>
+        <%= f.select :desired_duration_minutes, duration_options, {}, class: "field-input" %>
+        <p class="field-hint">เป็นค่าแนะนำให้ Admin ใช้ตอนจัดประมูล</p>
+        <% product.errors[:desired_duration_minutes].each do |message| %><p class="field-error"><%= message %></p><% end %>
+      </div>
+    </div>
+  </section>
+
+  <section class="card flex flex-col gap-4">
+    <div>
+      <h2 class="text-lg font-semibold">รูปสินค้า</h2>
+      <p class="field-hint">1–<%= Product::MAX_IMAGES %> รูป · JPG, PNG หรือ WebP ไม่เกิน 5MB ต่อรูป · รูปแรกเป็นรูปปก</p>
+    </div>
+
+    <% saved_images = product.images.select(&:persisted?) %>
+    <% if saved_images.any? %>
+      <ul class="grid grid-cols-3 gap-3 sm:grid-cols-6">
+        <% saved_images.each do |image| %>
+          <li>
+            <%= f.hidden_field :images, multiple: true, value: image.signed_id, id: nil %>
+            <%= product_thumb(image, alt: image.filename.to_s, class_name: "aspect-square w-full") %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <div>
+      <%= f.label :images, "เพิ่มรูป", class: "field-label" %>
+      <%= f.file_field :images, multiple: true, accept: Product::IMAGE_TYPES.join(","), class: "field-input" %>
+      <% product.errors[:images].each do |message| %><p class="field-error"><%= message %></p><% end %>
+    </div>
+  </section>
+
+  <section class="card flex flex-col gap-3">
+    <div>
+      <h2 class="text-lg font-semibold">ใบรับรองความแท้ <span class="text-sm font-normal text-ink-2">(ไม่บังคับ)</span></h2>
+      <p class="field-hint">PDF 1 ไฟล์ ไม่เกิน 10MB · อัปโหลดใหม่จะแทนที่ไฟล์เดิม</p>
+    </div>
+    <% if product.certificate.attached? && product.certificate.persisted? %>
+      <p class="text-sm">ไฟล์ปัจจุบัน: <%= link_to product.certificate.filename, rails_blob_path(product.certificate, disposition: "attachment") %></p>
+    <% end %>
+    <%= f.label :certificate, "เลือกไฟล์ PDF", class: "sr-only" %>
+    <%= f.file_field :certificate, accept: "application/pdf", class: "field-input" %>
+    <% product.errors[:certificate].each do |message| %><p class="field-error"><%= message %></p><% end %>
+  </section>
+
+  <div class="flex flex-wrap gap-3">
+    <%= f.submit "บันทึกแบบร่าง", class: "btn-primary cursor-pointer" %>
+    <%= link_to "ยกเลิก", product.persisted? ? product_path(product) : products_path, class: "btn-secondary" %>
+  </div>
+<% end %>

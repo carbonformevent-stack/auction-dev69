@@ -69,7 +69,7 @@ stateDiagram-v2
   closed --> [*]: ไม่มีผู้ชนะ → นำสินค้าไปประมูลใหม่ได้
 ```
 
-- เปลี่ยน state ผ่าน service object เท่านั้น ใช้ transaction + `lock!`
+- เปลี่ยน state ผ่าน service object เท่านั้น ใช้ transaction + conditional update (ดู `Product#transition!`) — **หมายเหตุ:** ตั้งแต่ย้ายมา SQLite `lock!` ไม่มีผล (SQLite ไม่มี `SELECT ... FOR UPDATE`) จุดที่เขียนว่า lock ด้านล่างให้ใช้วิธีเดียวกัน
 - `starts_at` / `ends_at` เป็นเวลาจริงที่ Admin กำหนด (default เสนอจาก `desired_duration` ของสินค้า)
 
 ## 4. กติกา FPSBA (First-Price Sealed-Bid Auction)

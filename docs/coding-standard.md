@@ -55,10 +55,8 @@ module Products
 
     def call
       Product.transaction do
-        @product.lock!
-        raise InvalidTransition unless @product.pending_review?
-
-        @product.approved!
+        # UPDATE ... WHERE status = pending_review — 0 แถว = มีคนตัดสินไปแล้ว → raise
+        @product.transition!(from: :pending_review, to: :approved)
         @product.reviews.create!(reviewer: @reviewer, decision: :approved)
       end
       @product
@@ -71,7 +69,7 @@ end
 - 1 class = 1 หน้าที่, public method เดียวคือ `call`
 - รับ dependency ผ่าน keyword arguments
 - ล้มเหลวให้ raise exception ที่ตั้งชื่อชัด หรือคืน result object — เลือกแบบเดียวกันทั้งโปรเจกต์ (ตั้งต้น: raise)
-- ใช้ transaction + row lock เมื่อเปลี่ยน state ที่แข่งกันได้ (อนุมัติ, เสนอราคา, ปิดประมูล)
+- ใช้ transaction + conditional update (`UPDATE ... WHERE status = ...` แล้วเช็กจำนวนแถว เช่น `Product#transition!`) เมื่อเปลี่ยน state ที่แข่งกันได้ (อนุมัติ, เสนอราคา, ปิดประมูล) — SQLite ไม่รองรับ `SELECT ... FOR UPDATE` จึง `lock!` ไม่มีผล
 
 ### ห้าม logic ใน view
 

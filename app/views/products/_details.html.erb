@@ -1,0 +1,22 @@
+<%# ข้อมูลสินค้าที่ทั้งผู้ขายและ Admin เห็นเหมือนกัน %>
+<section aria-label="รูปสินค้า" class="card">
+  <% if product.images.any? %>
+    <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <% product.images.each_with_index do |image, index| %>
+        <li>
+          <%= link_to url_for(image), target: "_blank", rel: "noopener" do %>
+            <%= product_thumb(image, alt: "#{product.title} รูปที่ #{index + 1}", class_name: "aspect-square w-full") %>
+          <% end %>
+          <% if index.zero? %><p class="mt-1 text-xs text-ink-2">รูปปก</p><% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="text-ink-2">ยังไม่มีรูป — ต้องมีอย่างน้อย 1 รูปก่อนส่งตรวจ</p>
+  <% end %>
+</section>
+
+<section class="card">
+  <h2 class="mb-2 text-lg font-semibold">รายละเอียดจากผู้ขาย</h2>
+  <p class="whitespace-pre-line"><%= product.description %></p>
+</section>

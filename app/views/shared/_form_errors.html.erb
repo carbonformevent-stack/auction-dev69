@@ -1,0 +1,10 @@
+<% if record.errors.any? %>
+  <div role="alert" class="mb-6 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-sm text-danger-ink">
+    <p class="font-semibold">บันทึกไม่ได้ กรุณาแก้ไข <%= record.errors.count %> รายการ</p>
+    <ul class="mt-1 list-disc pl-5">
+      <% record.errors.full_messages.each do |message| %>
+        <li><%= message %></li>
+      <% end %>
+    </ul>
+  </div>
+<% end %>

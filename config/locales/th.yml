@@ -1,0 +1,8 @@
+th:
+  errors:
+    # ข้อความ validation ของเราเขียนเป็นประโยคเต็มแล้ว จึงไม่ต้องนำหน้าด้วยชื่อ field
+    format: "%{message}"
+  activerecord:
+    errors:
+      messages:
+        record_invalid: "%{errors}"

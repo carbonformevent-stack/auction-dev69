@@ -1,0 +1,39 @@
+<% content_for :title, "สินค้าของฉัน" %>
+
+<div class="flex flex-wrap items-end justify-between gap-3">
+  <div>
+    <h1 class="text-[28px] leading-snug font-bold">สินค้าของฉัน</h1>
+    <p class="mt-1 text-[15px] text-ink-2">ลงสินค้า ติดตามสถานะการตรวจสอบ และแก้ไขสินค้าที่ถูกส่งกลับ</p>
+  </div>
+  <%= link_to "+ ลงสินค้าใหม่", new_product_path, class: "btn-primary" %>
+</div>
+
+<% if @products.any? %>
+  <ul class="mt-6 flex flex-col gap-2.5">
+    <% @products.each do |product| %>
+      <li>
+        <%= link_to product, class: "flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-3 text-ink no-underline hover:border-primary" do %>
+          <%= product_thumb(product.cover_image, alt: product.title) %>
+          <div class="min-w-0 flex-[1_1_260px]">
+            <p class="text-[13px] text-ink-2"><%= category_label(product.category) %></p>
+            <p class="truncate font-semibold"><%= product.title %></p>
+            <p class="text-[13px] text-ink-2">แก้ไขล่าสุด <%= thai_time(product.updated_at) %> · <%= product.images.size %> รูป</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-5">
+            <span class="min-w-24 text-right">
+              <span class="block text-xs text-ink-2">ราคาเริ่มต้น</span>
+              <span class="text-[17px] font-semibold tabular-nums"><%= baht(product.starting_price) %></span>
+            </span>
+            <%= status_badge(product) %>
+          </div>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <div class="mt-6 flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-14 text-center">
+    <h2 class="text-xl font-semibold">ยังไม่มีสินค้า</h2>
+    <p class="max-w-md text-[15px] text-ink-2">เริ่มลงสินค้าสะสมชิ้นแรกของคุณ ทีมตรวจสอบจะตรวจก่อนนำไปจัดประมูล</p>
+    <%= link_to "ลงสินค้า", new_product_path, class: "btn-primary mt-2" %>
+  </div>
+<% end %>
