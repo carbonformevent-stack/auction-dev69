@@ -104,6 +104,32 @@ RSpec.describe ProductsHelper do
     end
   end
 
+  describe "#field_errors" do
+    it "renders every message for the attribute with the design's prefix" do
+      product = build(:product, starting_price: 0, title: "")
+      product.validate
+
+      html = helper.field_errors(product, :starting_price)
+
+      expect(html).to include("ข้อผิดพลาด: ราคาต้องอยู่ระหว่าง 1–20,000 บาท", 'role="alert"')
+    end
+
+    it "renders nothing when the attribute is valid" do
+      product = build(:product)
+      product.validate
+
+      expect(helper.field_errors(product, :title)).to be_blank
+    end
+  end
+
+  describe "#category_icon" do
+    %w[watch jewelry old_book painting].each do |category|
+      it "draws an decorative svg for #{category}" do
+        expect(helper.category_icon(category)).to include("<svg", 'aria-hidden="true"')
+      end
+    end
+  end
+
   describe "#thai_short_time" do
     it "formats day, abbreviated Thai month and time without the year" do
       expect(helper.thai_short_time(Time.zone.local(2026, 11, 8, 16, 40))).to eq("8 พ.ย. 16:40")

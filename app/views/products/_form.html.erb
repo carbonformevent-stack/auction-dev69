@@ -1,85 +1,179 @@
-<%= form_with model: product, class: "flex flex-col gap-6" do |f| %>
-  <%= render "shared/form_errors", record: product %>
+<%# locals: (product:, heading:, back_path:, back_label:) %>
+<% readiness = Products::Readiness.new(product) %>
+<% current_step = readiness.current_step %>
+<% saved_images = product.images.select(&:persisted?) %>
+<% saved_certificate = product.certificate.attached? && product.certificate.persisted? %>
+<% price_ok = Product::PRICE_RANGE.cover?(product.starting_price) %>
 
-  <section class="card flex flex-col gap-5">
-    <h2 class="text-lg font-semibold">ข้อมูลสินค้า</h2>
-
-    <div>
-      <%= f.label :category, "ประเภทสินค้า", class: "field-label" %>
-      <%= f.select :category, category_options, { include_blank: "เลือกประเภท" }, class: "field-input", required: true %>
-      <% product.errors[:category].each do |message| %><p class="field-error"><%= message %></p><% end %>
-    </div>
-
-    <div>
-      <%= f.label :title, "ชื่อสินค้า", class: "field-label" %>
-      <%= f.text_field :title, class: "field-input", maxlength: 150, required: true %>
-      <p class="field-hint">ไม่เกิน 150 ตัวอักษร</p>
-      <% product.errors[:title].each do |message| %><p class="field-error"><%= message %></p><% end %>
-    </div>
-
-    <div>
-      <%= f.label :description, "รายละเอียด", class: "field-label" %>
-      <%= f.text_area :description, rows: 6, class: "field-input", maxlength: 5000, required: true %>
-      <p class="field-hint">สภาพ ที่มา ตำหนิ — ไม่เกิน 5,000 ตัวอักษร</p>
-      <% product.errors[:description].each do |message| %><p class="field-error"><%= message %></p><% end %>
-    </div>
-
-    <div class="grid gap-5 sm:grid-cols-2">
-      <div>
-        <%= f.label :starting_price, "ราคาเริ่มต้น (บาท)", class: "field-label" %>
-        <%= f.number_field :starting_price, min: 1, max: 20_000, step: 1, class: "field-input", required: true %>
-        <p class="field-hint">1–20,000 บาท จำนวนเต็ม</p>
-        <% product.errors[:starting_price].each do |message| %><p class="field-error"><%= message %></p><% end %>
-      </div>
-      <div>
-        <%= f.label :desired_duration_minutes, "ระยะเวลาประมูลที่ต้องการ", class: "field-label" %>
-        <%= f.select :desired_duration_minutes, duration_options, {}, class: "field-input" %>
-        <p class="field-hint">เป็นค่าแนะนำให้ Admin ใช้ตอนจัดประมูล</p>
-        <% product.errors[:desired_duration_minutes].each do |message| %><p class="field-error"><%= message %></p><% end %>
-      </div>
-    </div>
-  </section>
-
-  <section class="card flex flex-col gap-4">
-    <div>
-      <h2 class="text-lg font-semibold">รูปสินค้า</h2>
-      <p class="field-hint">1–<%= Product::MAX_IMAGES %> รูป · JPG, PNG หรือ WebP ไม่เกิน 5MB ต่อรูป · รูปแรกเป็นรูปปก</p>
-    </div>
-
-    <% saved_images = product.images.select(&:persisted?) %>
-    <% if saved_images.any? %>
-      <ul class="grid grid-cols-3 gap-3 sm:grid-cols-6">
-        <% saved_images.each do |image| %>
-          <li>
-            <%= f.hidden_field :images, multiple: true, value: image.signed_id, id: nil %>
-            <%= product_thumb(image, alt: image.filename.to_s, class_name: "aspect-square w-full") %>
-          </li>
-        <% end %>
-      </ul>
-    <% end %>
-
-    <div>
-      <%= f.label :images, "เพิ่มรูป", class: "field-label" %>
-      <%= f.file_field :images, multiple: true, accept: Product::IMAGE_TYPES.join(","), class: "field-input" %>
-      <% product.errors[:images].each do |message| %><p class="field-error"><%= message %></p><% end %>
-    </div>
-  </section>
-
-  <section class="card flex flex-col gap-3">
-    <div>
-      <h2 class="text-lg font-semibold">ใบรับรองความแท้ <span class="text-sm font-normal text-ink-2">(ไม่บังคับ)</span></h2>
-      <p class="field-hint">PDF 1 ไฟล์ ไม่เกิน 10MB · อัปโหลดใหม่จะแทนที่ไฟล์เดิม</p>
-    </div>
-    <% if product.certificate.attached? && product.certificate.persisted? %>
-      <p class="text-sm">ไฟล์ปัจจุบัน: <%= link_to product.certificate.filename, rails_blob_path(product.certificate, disposition: "attachment") %></p>
-    <% end %>
-    <%= f.label :certificate, "เลือกไฟล์ PDF", class: "sr-only" %>
-    <%= f.file_field :certificate, accept: "application/pdf", class: "field-input" %>
-    <% product.errors[:certificate].each do |message| %><p class="field-error"><%= message %></p><% end %>
-  </section>
-
-  <div class="flex flex-wrap gap-3">
-    <%= f.submit "บันทึกแบบร่าง", class: "btn-primary cursor-pointer" %>
-    <%= link_to "ยกเลิก", product.persisted? ? product_path(product) : products_path, class: "btn-secondary" %>
-  </div>
+<% content_for :mobile_bar do %>
+  <%= render "shared/mobile_bar", title: heading, back_path: back_path %>
 <% end %>
+
+<%= link_to back_label, back_path, class: "hidden text-sm sm:inline" %>
+<div class="flex flex-wrap items-center justify-between gap-3 sm:mt-1">
+  <h1 class="sr-only text-[28px] leading-snug font-bold sm:not-sr-only"><%= heading %></h1>
+  <% if product.persisted? %>
+    <span class="hidden items-center gap-2 text-sm text-ink-2 sm:flex"><%= status_badge(product) %> บันทึกล่าสุด <%= thai_short_time(product.updated_at) %></span>
+  <% else %>
+    <span class="hidden rounded-full bg-muted-2 px-3 py-1 text-xs font-semibold text-ink-2 sm:inline">ฉบับร่าง · ยังไม่บันทึก</span>
+  <% end %>
+</div>
+
+<%= render "products/form_steps", readiness: readiness, product: product %>
+
+<div class="flex flex-wrap items-start gap-6 pt-4 sm:pt-6">
+  <%= form_with model: product, id: "product-form", class: "flex min-w-0 flex-[999_1_600px] flex-col gap-4" do |f| %>
+
+    <%# 1 ประเภท %>
+    <fieldset class="card">
+      <legend class="field-label float-left mb-3 w-full text-base font-semibold">ประเภทสินค้า <span class="text-danger" aria-hidden="true">*</span></legend>
+      <div class="grid clear-both grid-cols-2 gap-2 sm:grid-cols-[repeat(auto-fit,minmax(150px,1fr))]">
+        <% category_options.each_with_index do |(label, value), index| %>
+          <label class="flex min-h-12 cursor-pointer items-center gap-2 rounded-lg border border-line-strong bg-surface px-3 text-sm font-medium has-checked:border-primary has-checked:bg-primary-soft has-checked:text-primary-ink has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary sm:min-h-[52px]">
+            <%= f.radio_button :category, value, class: "sr-only", required: index.zero?, aria: { describedby: ("category-errors" if product.errors[:category].any?) } %>
+            <span class="hidden sm:block"><%= category_icon(value) %></span>
+            <%= label %>
+          </label>
+        <% end %>
+      </div>
+      <%= field_errors(product, :category) %>
+    </fieldset>
+
+    <%# 2 รายละเอียด %>
+    <section class="card flex flex-col gap-4">
+      <h2 class="text-base font-semibold">รายละเอียด</h2>
+
+      <div data-controller="char-counter">
+        <div class="flex items-baseline justify-between gap-3">
+          <%= f.label :title, class: "field-label" do %>ชื่อสินค้า <span class="text-danger" aria-hidden="true">*</span><% end %>
+          <span data-char-counter-target="count" aria-live="off" class="text-[13px] text-ink-2 tabular-nums"><%= number_with_delimiter(product.title.to_s.length) %>/150</span>
+        </div>
+        <%= f.text_field :title, maxlength: 150, required: true, class: "field-input",
+              aria: { invalid: product.errors[:title].any? || nil, describedby: ("title-errors" if product.errors[:title].any?) },
+              data: { char_counter_target: "input", action: "input->char-counter#update" } %>
+        <%= field_errors(product, :title) %>
+      </div>
+
+      <div data-controller="char-counter">
+        <div class="flex items-baseline justify-between gap-3">
+          <%= f.label :description, class: "field-label" do %>รายละเอียดสินค้า <span class="text-danger" aria-hidden="true">*</span><% end %>
+          <span data-char-counter-target="count" class="text-[13px] text-ink-2 tabular-nums"><%= number_with_delimiter(product.description.to_s.length) %>/5,000</span>
+        </div>
+        <%= f.text_area :description, rows: 5, maxlength: 5000, required: true, class: "field-input leading-relaxed",
+              aria: { invalid: product.errors[:description].any? || nil, describedby: ("description-errors" if product.errors[:description].any?) },
+              data: { char_counter_target: "input", action: "input->char-counter#update" } %>
+        <%= field_errors(product, :description) %>
+      </div>
+    </section>
+
+    <%# 3 รูปภาพ %>
+    <section class="card flex flex-col gap-4 <%= "border-primary" if current_step == :images %>" data-controller="file-picker">
+      <div class="flex items-center justify-between gap-3">
+        <h2 class="text-base font-semibold">รูปภาพ <span class="text-danger" aria-hidden="true">*</span></h2>
+        <span class="rounded-full bg-muted-2 px-2.5 py-0.5 text-xs font-semibold text-neutral-ink tabular-nums"><%= saved_images.size %>/<%= Product::MAX_IMAGES %></span>
+      </div>
+
+      <% if saved_images.any? %>
+        <ul class="grid grid-cols-3 gap-3 sm:grid-cols-[repeat(auto-fill,minmax(112px,1fr))]">
+          <% saved_images.each_with_index do |image, index| %>
+            <li class="relative">
+              <%= f.hidden_field :images, multiple: true, value: image.signed_id, id: nil %>
+              <%= product_thumb(image, alt: image.filename.to_s, class_name: "aspect-square w-full") %>
+              <% if index.zero? %>
+                <span class="absolute top-1 left-1 rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-on-primary">ปก</span>
+              <% end %>
+              <button type="submit" form="<%= dom_id(image, :delete) %>" aria-label="ลบรูป <%= image.filename %>"
+                      class="absolute top-1 right-1 flex size-8 cursor-pointer items-center justify-center rounded-full bg-surface/90 text-lg leading-none text-danger shadow-sm hover:bg-danger-soft">×</button>
+            </li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <label class="flex cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-dashed border-line-strong bg-muted px-4 py-6 text-center hover:border-primary has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary">
+        <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+        <span class="btn-outline pointer-events-none">เลือกไฟล์รูป</span>
+        <span class="text-[13px] text-ink-2">JPG, PNG, WebP · ไม่เกิน 5MB ต่อรูป · รูปแรกคือรูปปก</span>
+        <%= f.file_field :images, multiple: true, accept: Product::IMAGE_TYPES.join(","), class: "sr-only",
+              data: { file_picker_target: "input", action: "file-picker#show" }, aria: { label: "เลือกไฟล์รูปสินค้า" } %>
+      </label>
+      <p data-file-picker-target="summary" role="status" class="text-sm font-medium text-primary-ink empty:hidden"></p>
+      <%= field_errors(product, :images) %>
+    </section>
+
+    <%# 4 ใบรับรอง %>
+    <section class="card flex flex-col gap-3" data-controller="file-picker">
+      <div>
+        <h2 class="text-base font-semibold">ใบรับรอง</h2>
+        <p class="field-hint">ไม่บังคับ · ช่วยให้ผ่านการตรวจเร็วขึ้น</p>
+      </div>
+
+      <% if saved_certificate %>
+        <div class="flex items-center gap-3 rounded-lg bg-muted p-3">
+          <span class="rounded bg-danger-soft px-2 py-0.5 text-xs font-bold text-danger">PDF</span>
+          <span class="min-w-0 flex-1 truncate text-sm font-medium"><%= product.certificate.filename %></span>
+          <span class="shrink-0 text-[13px] text-ink-2">· <%= number_to_human_size(product.certificate.byte_size) %></span>
+          <button type="submit" form="delete-certificate" aria-label="ลบไฟล์ใบรับรอง"
+                  class="-my-1 flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-danger hover:bg-danger-soft">
+            <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-12M9 7V4h6v3"/></svg>
+          </button>
+        </div>
+      <% else %>
+        <label class="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-line-strong px-4 text-sm font-medium text-primary hover:border-primary has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary">
+          + แนบไฟล์ PDF (1 ไฟล์ ไม่เกิน 10MB)
+          <%= f.file_field :certificate, accept: "application/pdf", class: "sr-only",
+                data: { file_picker_target: "input", action: "file-picker#show" }, aria: { label: "เลือกไฟล์ใบรับรอง PDF" } %>
+        </label>
+        <p data-file-picker-target="summary" role="status" class="text-sm font-medium text-primary-ink empty:hidden"></p>
+      <% end %>
+      <%= field_errors(product, :certificate) %>
+    </section>
+
+    <%# 5 ราคาและระยะเวลา %>
+    <section class="card flex flex-col gap-4">
+      <h2 class="text-base font-semibold">ราคาและระยะเวลา</h2>
+      <div class="grid gap-4 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))]">
+        <div>
+          <%= f.label :starting_price, class: "field-label" do %>ราคาเริ่มต้น <span class="text-danger" aria-hidden="true">*</span><% end %>
+          <div class="flex">
+            <span aria-hidden="true" class="flex min-h-11 items-center rounded-l-lg border border-r-0 border-line-strong bg-muted px-3 text-ink-2">฿</span>
+            <%= f.number_field :starting_price, min: 1, max: Product::PRICE_RANGE.end, step: 1, inputmode: "numeric", required: true,
+                  class: "field-input rounded-l-none text-lg tabular-nums",
+                  aria: { invalid: product.errors[:starting_price].any? || nil, describedby: ("starting_price-errors" if product.errors[:starting_price].any?) } %>
+          </div>
+          <p class="field-hint">จำนวนเต็ม <%= baht(Product::PRICE_RANGE.begin) %> – <%= baht(Product::PRICE_RANGE.end) %></p>
+          <%= field_errors(product, :starting_price) %>
+        </div>
+        <div>
+          <%= f.label :desired_duration_minutes, "ระยะเวลาที่ต้องการ", class: "field-label" %>
+          <%= f.select :desired_duration_minutes, duration_options, {}, class: "field-input",
+                aria: { invalid: product.errors[:desired_duration_minutes].any? || nil, describedby: ("desired_duration_minutes-errors" if product.errors[:desired_duration_minutes].any?) } %>
+          <p class="field-hint">Admin เป็นผู้กำหนดวัน-เวลาจริง</p>
+          <%= field_errors(product, :desired_duration_minutes) %>
+        </div>
+      </div>
+    </section>
+  <% end %>
+
+  <%= render "products/form_aside", readiness: readiness, product: product %>
+</div>
+
+<%# ปุ่มลบรูป/ใบรับรองอยู่ในฟอร์มหลักไม่ได้ (HTML ห้ามซ้อน form) จึงวางฟอร์มไว้ข้างนอก แล้วให้ปุ่มอ้างผ่าน form="..." %>
+<% saved_images.each do |image| %>
+  <%= form_with url: product_image_path(product, image), method: :delete, id: dom_id(image, :delete), class: "hidden",
+        data: { turbo_confirm: "ลบรูปนี้?" } do %><% end %>
+<% end %>
+<% if saved_certificate %>
+  <%= form_with url: product_certificate_path(product), method: :delete, id: "delete-certificate", class: "hidden",
+        data: { turbo_confirm: "ลบไฟล์ใบรับรองนี้?" } do %><% end %>
+<% end %>
+
+<div aria-hidden="true" class="h-24"></div>
+<div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface shadow-[0_-8px_24px_-12px_hsl(240_6%_10%/.18)]">
+  <div class="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-4 pt-3 pb-5 sm:px-6 sm:pb-3">
+    <p class="hidden text-sm text-ink-2 sm:block">ราคาเริ่มต้น <strong class="ml-1 text-lg text-ink tabular-nums"><%= price_ok ? baht(product.starting_price) : "—" %></strong></p>
+    <div class="grid flex-1 grid-cols-2 gap-3 sm:flex sm:flex-none">
+      <%= submit_tag "บันทึกฉบับร่าง", form: "product-form", name: "commit", class: "btn-outline min-h-12 cursor-pointer sm:min-h-11" %>
+      <%= submit_tag "ส่งตรวจสอบ", form: "product-form", name: "submit_for_review", class: "btn-primary min-h-12 cursor-pointer sm:min-h-11" %>
+    </div>
+  </div>
+</div>

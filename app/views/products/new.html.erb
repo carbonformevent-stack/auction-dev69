@@ -1,7 +1,3 @@
 <% content_for :title, "ลงสินค้าใหม่" %>
 
-<div class="mx-auto max-w-3xl">
-  <%= link_to "← สินค้าของฉัน", products_path, class: "text-sm text-primary" %>
-  <h1 class="mt-2 mb-6 text-[28px] font-bold">ลงสินค้าใหม่</h1>
-  <%= render "form", product: @product %>
-</div>
+<%= render "form", product: @product, heading: "ลงสินค้าใหม่", back_path: products_path, back_label: "← สินค้าของฉัน" %>

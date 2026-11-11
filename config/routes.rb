@@ -9,6 +9,7 @@ Rails.application.routes.draw do
     scope module: :products do
       resource :submission, only: :create
       resources :images, only: :destroy
+      resource :certificate, only: :destroy
     end
   end
 

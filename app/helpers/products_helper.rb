@@ -70,6 +70,30 @@ module ProductsHelper
     end
   end
 
+  CATEGORY_ICONS = {
+    "watch" => '<circle cx="12" cy="12" r="5"/><path d="M12 9.5V12l1.5 1M9 7l.7-4h4.6L15 7M9 17l.7 4h4.6l.7-4"/>',
+    "jewelry" => '<path d="M6 3h12l3 6-9 12L3 9l3-6Z"/><path d="M3 9h18M9 3l3 18M15 3l-3 18"/>',
+    "old_book" => '<path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2V5Z"/><path d="M8 7h7"/>',
+    "painting" => '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="1.5"/><path d="m21 16-5-5-8 8"/>'
+  }.freeze
+
+  # ไอคอนประเภทสินค้าบน radio tile (ตกแต่งอย่างเดียว ซ่อนจาก screen reader)
+  def category_icon(category, size: 22)
+    tag.svg(CATEGORY_ICONS.fetch(category.to_s).html_safe, aria: { hidden: true }, width: size, height: size,
+            viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": 1.8,
+            "stroke-linecap": "round", "stroke-linejoin": "round")
+  end
+
+  # ข้อความ error ใต้ field — id ผูกกับ aria-describedby ของ input (`#{attribute}-errors`)
+  def field_errors(record, attribute)
+    messages = record.errors[attribute]
+    return if messages.empty?
+
+    tag.div(id: "#{attribute}-errors") do
+      safe_join(messages.map { |message| tag.p("ข้อผิดพลาด: #{message}", class: "field-error", role: "alert") })
+    end
+  end
+
   def decision_label(review)
     DECISION_LABELS.fetch(review.decision)
   end
