@@ -54,6 +54,17 @@ bin/setup
 - secret `auction-dev-secret` เป็นค่าสำหรับเครื่อง local เท่านั้น **ห้ามใช้กับ production**
 - login ไม่ผ่าน: ดู `log/development.log` บรรทัด `[auth]` จะบอกสาเหตุ (เช่น ยังไม่ได้ตั้ง `KEYCLOAK_*` หรือ Keycloak ยังไม่ขึ้น)
 
+### ลองใช้โดยไม่มี Keycloak (ล็อกอินจำลอง)
+
+```bash
+echo "DEV_LOGIN=1" >> .env
+bin/rails db:seed        # สร้างบัญชีทดสอบ + สินค้าตัวอย่างครบทุกสถานะ (รันซ้ำได้)
+bin/dev
+```
+
+เปิด http://localhost:3000/sign_in จะมีปุ่ม **เข้าเป็นผู้ขายทดสอบ** (`seller@example.test`) และ **เข้าเป็นแอดมินทดสอบ** (`admin@example.test`)
+ปุ่มนี้ทำงานเฉพาะ `development` และต้องตั้ง `DEV_LOGIN=1` เองเท่านั้น (ดู `config/initializers/dev_login.rb`) — ใน production ปุ่มไม่แสดงและไม่มีทางใช้
+
 ### ตั้ง Admin คนแรก
 
 ```bash
