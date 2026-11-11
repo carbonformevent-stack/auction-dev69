@@ -10,7 +10,8 @@ class Product < ApplicationRecord
 
   PRICE_RANGE = 1..20_000
   DURATION_RANGE = 60..10_080 # นาที: 1 ชั่วโมง – 7 วัน
-  DURATION_CHOICES = [ 60, 360, 1440, 4320, 10_080 ].freeze
+  DURATION_CHOICES = [ 60, 360, 1440, 4320, 7200, 10_080 ].freeze
+  REVIEW_SLA = 48.hours # รอตรวจเกินนี้ถือว่าล่าช้า (คิว Admin แสดงเป็นสีแดง)
   MAX_IMAGES = 12
   MAX_IMAGE_SIZE = 5.megabytes
   MAX_CERTIFICATE_SIZE = 10.megabytes
@@ -40,6 +41,7 @@ class Product < ApplicationRecord
   validate :validate_images_present, on: :submit
 
   scope :review_queue, -> { pending_review.order(:submitted_at, :id) }
+  scope :for_admin_review, -> { includes(:seller, reviews: :reviewer).with_attached_images.with_attached_certificate }
 
   def editable?
     draft? || rejected?
@@ -74,6 +76,16 @@ class Product < ApplicationRecord
 
   def cover_image
     images.first
+  end
+
+  # รอตรวจนานเกิน SLA (เกิน 48 ชั่วโมงเต็ม — ที่ 48 ชั่วโมงพอดียังไม่ถือว่าเกิน)
+  def review_overdue?(now = Time.current)
+    pending_review? && submitted_at.present? && submitted_at < now - REVIEW_SLA
+  end
+
+  # การส่งตรวจครั้งที่เท่าไร: 1 = ครั้งแรก, ถูกตีกลับทุกครั้งเพิ่มอีก 1
+  def resubmission_round
+    reviews.to_a.count(&:rejected?) + 1
   end
 
   # เปลี่ยนสถานะแบบ "ใครมาก่อนได้ก่อน" — UPDATE ... WHERE status IN (from)

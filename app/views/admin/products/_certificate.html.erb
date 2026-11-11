@@ -1,0 +1,16 @@
+<%# locals: (product:) %>
+<% certificate = product.certificate %>
+<% inline_path = rails_blob_path(certificate, disposition: "inline") %>
+<section aria-label="ใบรับรอง" class="card overflow-hidden p-0">
+  <div class="flex flex-wrap items-center gap-3 border-b border-line p-4">
+    <span class="rounded bg-danger-soft px-2 py-0.5 text-xs font-bold text-danger">PDF</span>
+    <div class="min-w-0 flex-1">
+      <h2 class="truncate text-[15px] font-semibold"><%= certificate.filename %></h2>
+      <p class="text-[13px] text-ink-2"><%= number_to_human_size(certificate.byte_size) %></p>
+    </div>
+    <%= link_to "เปิดในแท็บใหม่ ↗", inline_path, target: "_blank", rel: "noopener", class: "text-sm font-medium" %>
+  </div>
+  <div class="bg-muted-2 p-4">
+    <iframe src="<%= inline_path %>" title="ตัวอย่างใบรับรอง <%= certificate.filename %>" class="mx-auto h-[420px] w-full max-w-[420px] rounded bg-white"></iframe>
+  </div>
+</section>

@@ -1,0 +1,41 @@
+<%# locals: (readiness:, product:) %>
+<%# สรุปก่อนส่ง (desktop เท่านั้น) — ข้อมูลเดียวกับ step bar %>
+<% details = {
+     category: { done: category_label(product.category), todo: "ยังไม่ได้เลือก" },
+     details: { done: "ครบ", todo: "ยังไม่ครบ" },
+     images: { done: "#{product.images.size} รูป", todo: "ยังไม่มีรูป" },
+     certificate: { done: "แนบแล้ว", optional: "ไม่บังคับ" },
+     price_and_time: { done: "ถูกต้อง", todo: "ต้องแก้" }
+   } %>
+<% names = { category: "ประเภทสินค้า", details: "ชื่อและรายละเอียด", images: "รูปภาพ", certificate: "ใบรับรอง", price_and_time: "ราคาเริ่มต้น" } %>
+
+<aside class="hidden flex-[1_1_280px] flex-col gap-4 sm:flex lg:sticky lg:top-6 lg:max-w-[360px] lg:self-start">
+  <section class="card">
+    <div class="flex items-baseline justify-between">
+      <h2 class="text-base font-semibold">ความพร้อมในการส่ง</h2>
+      <span class="text-sm font-semibold tabular-nums"><%= readiness.done_count %>/<%= readiness.total %></span>
+    </div>
+    <div class="mt-2 h-2 overflow-hidden rounded-full bg-muted-2" aria-hidden="true">
+      <div class="h-full rounded-full bg-primary" style="width: <%= readiness.done_count * 100 / readiness.total %>%"></div>
+    </div>
+    <ul class="mt-4 flex flex-col gap-3 text-sm">
+      <% readiness.steps.each do |step| %>
+        <% marker, tone = case step.status
+                          when :done then [ "✓", "bg-success-soft text-success" ]
+                          when :optional then [ "–", "bg-muted-2 text-ink-2" ]
+                          else [ "!", "bg-accent-soft text-accent-ink" ]
+                          end %>
+        <li class="flex items-center gap-3">
+          <span aria-hidden="true" class="flex size-[22px] shrink-0 items-center justify-center rounded-full text-xs font-bold <%= tone %>"><%= marker %></span>
+          <span class="flex-1"><%= names.fetch(step.key) %></span>
+          <span class="text-ink-2"><%= details.fetch(step.key).fetch(step.status) %></span>
+        </li>
+      <% end %>
+    </ul>
+  </section>
+
+  <section class="rounded-xl bg-accent-soft p-4 text-accent-ink">
+    <h2 class="text-sm font-bold">ประมูลแบบปิดผนึก (FPSBA)</h2>
+    <p class="mt-1 text-sm">ผู้ประมูลเสนอราคาได้คนละครั้ง ไม่มีใครเห็นราคาของกันจนปิดประมูล ผู้เสนอสูงสุดชนะ</p>
+  </section>
+</aside>

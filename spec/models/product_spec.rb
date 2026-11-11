@@ -76,6 +76,17 @@ RSpec.describe Product do
     it("accepts 7 days") { product.desired_duration_minutes = 10_080; expect(product).to be_valid }
     it("rejects 7 days 1 hour") { product.desired_duration_minutes = 10_140; expect(errors_on(:desired_duration_minutes)).to include(duration_error) }
 
+    it "offers 5 days as a duration choice and accepts it" do
+      product.desired_duration_minutes = 7200
+
+      expect(Product::DURATION_CHOICES).to include(7200)
+      expect(product).to be_valid
+    end
+
+    it "keeps the duration choices sorted ascending" do
+      expect(Product::DURATION_CHOICES).to eq(Product::DURATION_CHOICES.sort)
+    end
+
     it "is enforced by a database check constraint" do
       product.save!
 
@@ -244,10 +255,45 @@ RSpec.describe Product do
   describe "#latest_rejection" do
     it "returns the most recent rejected review" do
       product = create(:product, :rejected)
-      create(:product_review, :rejected, product: product, reason: "เก่า", created_at: 2.days.ago)
-      create(:product_review, :rejected, product: product, reason: "ล่าสุด", created_at: 1.day.ago)
+      create(:product_review, :rejected, product: product, reason: "เหตุผลรอบเก่า", created_at: 2.days.ago)
+      create(:product_review, :rejected, product: product, reason: "เหตุผลรอบล่าสุด", created_at: 1.day.ago)
 
-      expect(product.reload.latest_rejection.reason).to eq("ล่าสุด")
+      expect(product.reload.latest_rejection.reason).to eq("เหตุผลรอบล่าสุด")
+    end
+  end
+
+  describe "#review_overdue? (SLA 48 hours)" do
+    let(:now) { Time.zone.local(2026, 11, 11, 12, 0) }
+
+    before { travel_to(now) }
+
+    it "is overdue after more than 48 hours in the queue" do
+      expect(build(:product, :pending_review, submitted_at: now - 48.hours - 1.second)).to be_review_overdue
+    end
+
+    it "is not overdue at exactly 48 hours" do
+      expect(build(:product, :pending_review, submitted_at: now - 48.hours)).not_to be_review_overdue
+    end
+
+    it "is never overdue once it is not pending" do
+      expect(build(:product, :approved, submitted_at: now - 10.days)).not_to be_review_overdue
+    end
+
+    it "is not overdue without a submission time" do
+      expect(build(:product, status: :pending_review, submitted_at: nil)).not_to be_review_overdue
+    end
+  end
+
+  describe "#resubmission_round" do
+    it "is 1 for a product that was never rejected" do
+      expect(build(:product, :pending_review).resubmission_round).to eq(1)
+    end
+
+    it "counts every earlier rejection" do
+      product = build(:product, :pending_review)
+      2.times { product.reviews.build(reviewer: build(:user, :admin), decision: :rejected, reason: "ไม่ผ่าน") }
+
+      expect(product.resubmission_round).to eq(3)
     end
   end
 end

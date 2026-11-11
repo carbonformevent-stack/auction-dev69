@@ -1,0 +1,8 @@
+<%# flash → toast มุมขวาบน (มือถือเต็มความกว้างใต้ app bar) %>
+<% if flash.any? %>
+  <div class="pointer-events-none fixed inset-x-4 top-16 z-50 flex flex-col gap-2 sm:top-[76px] sm:right-6 sm:left-auto sm:w-[360px]">
+    <% flash.each do |type, message| %>
+      <%= render "shared/toast", type: type.to_s, message: message %>
+    <% end %>
+  </div>
+<% end %>

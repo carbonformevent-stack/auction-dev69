@@ -16,12 +16,12 @@ RSpec.describe "Admin::Dashboard" do
       expect(response).to have_http_status(:forbidden)
     end
 
-    it "allows admins" do
+    it "sends admins straight to the review queue" do
       sign_in create(:user, :admin)
 
       get admin_root_path
 
-      expect(response).to have_http_status(:ok)
+      expect(response).to redirect_to(admin_products_path)
     end
   end
 end

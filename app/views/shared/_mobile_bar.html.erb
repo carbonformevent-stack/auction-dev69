@@ -1,0 +1,15 @@
+<%# locals: (title:, back_path: nil, extra: nil) %>
+<%# app bar มือถือ 56px — หน้าที่ต้องการใช้เรียกผ่าน content_for :mobile_bar; มีแล้ว header desktop จะซ่อนบนมือถือ %>
+<div data-mobile-bar class="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-line bg-surface px-2 sm:hidden">
+  <% if back_path %>
+    <%= link_to back_path, aria: { label: "กลับ" }, class: "flex size-11 shrink-0 items-center justify-center rounded-lg text-ink no-underline hover:bg-muted" do %>
+      <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>
+    <% end %>
+  <% else %>
+    <%= render "shared/account_menu", variant: :burger %>
+  <% end %>
+  <span class="min-w-0 flex-1 truncate text-[17px] font-bold"><%= title %></span>
+  <% if extra %>
+    <span class="shrink-0 rounded-full bg-muted-2 px-2.5 py-0.5 text-xs font-medium text-ink-2"><%= extra %></span>
+  <% end %>
+</div>

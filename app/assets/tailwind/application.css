@@ -23,40 +23,102 @@
   --color-danger-soft: hsl(0 86% 97%);
   --color-danger-ink: hsl(0 70% 32%);
   --color-neutral-ink: hsl(240 5% 32%);
+
+  /* โทนที่ใช้ใน board แต่ยังไม่มีใน token เดิม */
+  --color-on-primary: #fff;
+  --color-success-ink: hsl(157 78% 18%);
+  --color-danger-hover: hsl(0 74% 38%);
+  --color-ring: hsl(310 93% 34% / .22);
+  --color-danger-ring: hsl(0 74% 45% / .2);
+  --color-scrim: hsl(240 6% 10% / .5);
+
+  --shadow-lg: 0 18px 40px -12px hsl(240 6% 10% / .22);
 }
 
 @utility btn {
-  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-[15px] font-semibold no-underline transition-colors;
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 text-[15px] no-underline transition-colors;
+  @apply disabled:cursor-not-allowed disabled:border-transparent disabled:bg-muted-2 disabled:text-ink-2;
 }
 
 @utility btn-primary {
-  @apply btn bg-primary text-white hover:bg-primary-hover;
+  @apply btn bg-primary font-semibold text-on-primary not-disabled:hover:bg-primary-hover;
 }
 
 @utility btn-secondary {
-  @apply btn border border-line bg-surface text-ink hover:border-line-strong;
+  @apply btn border border-line-strong bg-surface px-[18px] font-medium text-ink not-disabled:hover:bg-muted;
+}
+
+@utility btn-outline {
+  @apply btn border border-primary bg-surface px-[18px] font-medium text-primary not-disabled:hover:bg-primary-soft;
+}
+
+@utility btn-success {
+  @apply btn bg-success font-semibold text-surface not-disabled:hover:brightness-[.92];
 }
 
 @utility btn-danger {
-  @apply btn border border-danger/30 bg-danger-soft text-danger-ink hover:border-danger;
+  @apply btn border border-danger bg-surface font-semibold text-danger not-disabled:hover:bg-danger-soft;
+}
+
+@utility btn-danger-solid {
+  @apply btn bg-danger font-semibold text-on-primary not-disabled:hover:bg-danger-hover;
+}
+
+@utility chip-base {
+  @apply inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-surface font-medium text-ink no-underline transition-colors hover:border-primary;
+  @apply aria-pressed:border-primary aria-pressed:bg-primary-soft aria-pressed:text-primary-ink aria-[current=true]:border-primary aria-[current=true]:bg-primary-soft aria-[current=true]:text-primary-ink;
+}
+
+/* ตัวกรอง (ประเภท/สถานะ) */
+@utility chip {
+  @apply chip-base min-h-10 px-3.5 text-sm;
+}
+
+/* เหตุผลสำเร็จรูปใน dialog */
+@utility chip-sm {
+  @apply chip-base min-h-9 px-3 text-[13px];
 }
 
 @utility card {
   @apply rounded-xl border border-line bg-surface p-5;
 }
 
+@utility empty-state {
+  @apply rounded-[14px] border border-dashed border-line-strong px-6 py-12 text-center;
+}
+
+/* ตารางรายการ (คิวตรวจ) — ครอบด้วย card ที่ overflow-x-auto */
+@utility data-table {
+  @apply w-full min-w-[860px] border-collapse text-[15px];
+
+  & th {
+    @apply bg-muted px-4 py-3 text-left text-xs font-semibold text-ink-2;
+  }
+
+  & td {
+    @apply border-t border-line px-4 py-3 align-middle;
+  }
+
+  & tbody tr:hover td {
+    @apply bg-muted;
+  }
+}
+
 @utility field-label {
-  @apply mb-1 block text-sm font-semibold;
+  @apply mb-1 block text-sm font-medium;
 }
 
 @utility field-input {
-  @apply w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base focus:border-primary focus:outline-2 focus:outline-primary/25;
+  @apply min-h-11 w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-base;
+  @apply focus:border-primary focus:outline-none focus:shadow-[0_0_0_3px_var(--color-ring)];
+  @apply aria-invalid:border-danger aria-invalid:focus:shadow-[0_0_0_3px_var(--color-danger-ring)];
+  @apply disabled:border-line disabled:bg-muted disabled:text-ink-2;
 }
 
 @utility field-error {
-  @apply mt-1 text-sm text-danger-ink;
+  @apply mt-1 text-[13px] font-medium text-danger;
 }
 
 @utility field-hint {
-  @apply mt-1 text-sm text-ink-2;
+  @apply mt-1 text-[13px] text-ink-2;
 }

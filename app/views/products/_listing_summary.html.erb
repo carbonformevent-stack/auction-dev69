@@ -1,0 +1,12 @@
+<%# locals: (product:) %>
+<%# ข้อมูลการลงสินค้า — ค่าชิดขวา ใช้ร่วมกันทั้งหน้าผู้ขายและหน้าตรวจของ Admin %>
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold">ข้อมูลการลงสินค้า</h2>
+  <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-[15px]">
+    <dt class="text-ink-2">ประเภท</dt><dd class="text-right"><%= category_label(product.category) %></dd>
+    <dt class="text-ink-2">ราคาเริ่มต้น</dt><dd class="text-right font-semibold tabular-nums"><%= baht(product.starting_price) %></dd>
+    <dt class="text-ink-2">ระยะเวลาที่เสนอ</dt><dd class="text-right"><%= duration_label(product.desired_duration_minutes) %></dd>
+    <dt class="text-ink-2">รูปภาพ</dt><dd class="text-right"><%= product.images.size %> รูป</dd>
+    <dt class="text-ink-2">ใบรับรอง</dt><dd class="text-right"><%= product.certificate.attached? ? "มี (PDF)" : "ไม่ได้แนบ" %></dd>
+  </dl>
+</section>

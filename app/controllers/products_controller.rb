@@ -4,7 +4,12 @@ class ProductsController < ApplicationController
   before_action :ensure_editable, only: %i[edit update]
 
   def index
-    @products = current_user.products.with_attached_images.order(updated_at: :desc)
+    owned = current_user.products
+    @status_counts = owned.group(:status).count
+    @status = Product.statuses.key?(params[:status].to_s) ? params[:status].to_s : nil
+
+    scope = @status ? owned.where(status: @status) : owned
+    @products = scope.includes(:reviews).with_attached_images.with_attached_certificate.order(updated_at: :desc)
   end
 
   def show; end
@@ -15,22 +20,14 @@ class ProductsController < ApplicationController
 
   def create
     @product = current_user.products.build(product_params)
-
-    if @product.save
-      redirect_to @product, notice: "บันทึกสินค้าแบบร่างแล้ว"
-    else
-      render :new, status: :unprocessable_content
-    end
+    save_product(failure: :new, saved_notice: "บันทึกสินค้าแบบร่างแล้ว")
   end
 
   def edit; end
 
   def update
-    if @product.update(product_params)
-      redirect_to @product, notice: "บันทึกการแก้ไขแล้ว"
-    else
-      render :edit, status: :unprocessable_content
-    end
+    @product.assign_attributes(product_params)
+    save_product(failure: :edit, saved_notice: "บันทึกการแก้ไขแล้ว")
   end
 
   def destroy
@@ -43,6 +40,33 @@ class ProductsController < ApplicationController
   end
 
   private
+
+  # ปุ่ม "ส่งตรวจสอบ" ในฟอร์มส่ง submit_for_review → บันทึกแล้วส่งตรวจในครั้งเดียว
+  # ปุ่ม "บันทึกฉบับร่าง" แค่บันทึก (สถานะไม่เปลี่ยน)
+  def save_product(failure:, saved_notice:)
+    if params[:submit_for_review].present?
+      save_and_submit(failure)
+    elsif @product.save
+      redirect_to @product, notice: saved_notice
+    else
+      render failure, status: :unprocessable_content
+    end
+  end
+
+  # ตรวจด้วย context :submit ก่อนบันทึก — ถ้าไม่ผ่านจะไม่สร้าง/แก้อะไรเลย
+  def save_and_submit(failure)
+    Product.transaction do
+      raise ActiveRecord::RecordInvalid, @product unless @product.valid?(:submit)
+
+      @product.save!
+      Products::Submit.call(product: @product, user: current_user)
+    end
+    redirect_to products_path, notice: Products::Submit.notice(@product)
+  rescue ActiveRecord::RecordInvalid
+    render failure, status: :unprocessable_content
+  rescue Product::InvalidTransition => e
+    redirect_to products_path, alert: e.message
+  end
 
   def set_product
     @product = current_user.products.includes(:reviews).find(params[:id])

@@ -22,7 +22,7 @@ RSpec.describe Products::Reject do
   it "does not change products that are not pending_review" do
     approved = create(:product, :approved)
 
-    expect { described_class.call(product: approved, reviewer: admin, reason: "x") }
+    expect { described_class.call(product: approved, reviewer: admin, reason: "เหตุผลที่ยาวพอ") }
       .to raise_error(Product::InvalidTransition)
   end
 

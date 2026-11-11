@@ -1,0 +1,22 @@
+<%# locals: (counts:, current:) %>
+<%# แท็บกรองสถานะ — desktop เป็นแท็บขีดเส้นใต้ มือถือเป็นชิปเลื่อนแนวนอน (markup เดียวกัน) %>
+<% total = counts.values.sum %>
+<nav aria-label="กรองตามสถานะ" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:gap-1 sm:border-b sm:border-line sm:px-0 sm:pb-0">
+  <% ProductsHelper::STATUS_TABS.each do |key, label, short_label| %>
+    <% count = key == "all" ? total : counts.fetch(key, 0) %>
+    <% active = (current || "all") == key %>
+    <%= link_to (key == "all" ? products_path : products_path(status: key)),
+          aria: { current: ("true" if active) },
+          data: { status_tab: key, count: count },
+          class: [
+            "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-3.5 text-sm font-medium whitespace-nowrap no-underline",
+            "sm:min-h-11 sm:rounded-none sm:border-0 sm:border-b-2 sm:px-4",
+            (active ? "border-primary bg-primary-soft text-primary-ink sm:bg-transparent sm:text-primary" :
+                      "border-line-strong bg-surface text-ink-2 hover:border-primary sm:border-b-transparent sm:bg-transparent sm:hover:text-ink")
+          ] do %>
+      <span class="sm:hidden"><%= short_label %></span>
+      <span class="hidden sm:inline"><%= label %></span>
+      <span class="text-[13px] tabular-nums sm:rounded-full sm:px-2 sm:text-xs <%= active ? "sm:bg-primary-soft sm:text-primary-ink" : "sm:bg-muted-2 sm:text-neutral-ink" %>"><%= count %></span>
+    <% end %>
+  <% end %>
+</nav>

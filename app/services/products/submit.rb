@@ -3,6 +3,11 @@ module Products
   class Submit
     def self.call(...) = new(...).call
 
+    # ข้อความ toast หลังส่งตรวจ (บรรทัดแรก = หัวเรื่อง) — ใช้ร่วมกันทุกจุดที่ส่งตรวจ
+    def self.notice(product)
+      "ส่งตรวจสอบแล้ว\n#{product.title} อยู่ในคิวของทีมตรวจสอบ"
+    end
+
     def initialize(product:, user:)
       @product = product
       @user = user

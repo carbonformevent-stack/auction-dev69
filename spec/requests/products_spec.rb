@@ -47,6 +47,113 @@ RSpec.describe "Products" do
     end
   end
 
+  describe "GET /products status tabs" do
+    before do
+      sign_in seller
+      create(:product, seller: seller, title: "ร่างหนึ่ง")
+      create(:product, :pending_review, seller: seller, title: "รอตรวจหนึ่ง")
+      create(:product, :approved, seller: seller, title: "อนุมัติหนึ่ง")
+      create_list(:product, 2, :rejected, seller: seller, title: "ตีกลับหนึ่ง")
+      create(:product, :pending_review, seller: other, title: "ของคนอื่น")
+    end
+
+    it "offers a tab per status with counts for the current seller only" do
+      get products_path
+
+      expect(response.body).to include('aria-label="กรองตามสถานะ"')
+      expect(response.body.scan(/data-status-tab="(\w+)" data-count="(\d+)"/))
+        .to eq([ %w[all 5], %w[draft 1], %w[pending_review 1], %w[approved 1], %w[rejected 2] ])
+    end
+
+    it "marks the all tab as current by default" do
+      get products_path
+
+      expect(response.body).to match(/aria-current="true"[^>]*data-status-tab="all"|data-status-tab="all"[^>]*aria-current="true"/)
+    end
+
+    it "filters by status and marks that tab current" do
+      get products_path(status: "rejected")
+
+      expect(response.body.scan('alt="ตีกลับหนึ่ง"').size).to eq(2)
+      expect(response.body).not_to include("ร่างหนึ่ง", "อนุมัติหนึ่ง")
+      expect(response.body).to match(/aria-current="true"[^>]*data-status-tab="rejected"|data-status-tab="rejected"[^>]*aria-current="true"/)
+    end
+
+    it "ignores an unknown status and shows everything" do
+      get products_path(status: "hacked")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("ร่างหนึ่ง", "อนุมัติหนึ่ง")
+    end
+
+    it "ignores a non-string status parameter" do
+      get products_path, params: { status: { "a" => "b" } }
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "explains an empty filter and keeps the tabs" do
+      seller.products.where(status: :approved).destroy_all
+
+      get products_path(status: "approved")
+
+      expect(response.body).to include("ไม่มีสินค้าในสถานะนี้", "ลองเลือกสถานะอื่น หรือลงสินค้าใหม่", 'aria-label="กรองตามสถานะ"')
+    end
+  end
+
+  describe "GET /products rows" do
+    before { sign_in seller }
+
+    it "shows a status specific action on every row" do
+      create(:product, seller: seller)
+      create(:product, :pending_review, seller: seller)
+      create(:product, :rejected, seller: seller)
+
+      get products_path
+
+      expect(response.body).to include("แก้ไขต่อ", "ดูรายละเอียด", "แก้ไขและส่งใหม่")
+    end
+
+    it "shows the rejection reason in the row" do
+      product = create(:product, :rejected, seller: seller)
+      create(:product_review, :rejected, product: product, reason: "รูปหน้าปัดเบลอ")
+
+      get products_path
+
+      expect(response.body).to include("ไม่อนุมัติ", "รูปหน้าปัดเบลอ")
+    end
+
+    it "loads reviews with a single query however many products there are" do
+      create_list(:product, 3, :rejected, seller: seller)
+      queries = []
+      counter = ->(*, payload) { queries << payload[:sql] if payload[:sql].include?('FROM "product_reviews"') }
+
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { get products_path }
+
+      expect(queries.size).to be <= 1
+    end
+
+    it "does not show the tabs when the seller has no products at all" do
+      get products_path
+
+      expect(response.body).not_to include('aria-label="กรองตามสถานะ"')
+    end
+
+    it "shows the first-listing empty state" do
+      get products_path
+
+      expect(response.body).to include("ยังไม่มีสินค้า", "ลงสินค้าชิ้นแรก", "ทีมผู้เชี่ยวชาญจะตรวจสอบก่อนนำไปจัดประมูล")
+    end
+
+    it "offers the listing button both in the header and as the mobile call to action" do
+      create(:product, seller: seller)
+
+      get products_path
+
+      expect(response.body.scan(%r{href="#{Regexp.escape(new_product_path)}"}).size).to eq(2)
+    end
+  end
+
   describe "GET /products/:id" do
     before { sign_in seller }
 
@@ -59,13 +166,113 @@ RSpec.describe "Products" do
     it "shows the latest rejection reason without the admin's identity (#14 AC3, #18 AC3, #19 AC3)" do
       admin = create(:user, :admin, name: "สมชาย แอดมิน")
       product = create(:product, :rejected, seller: seller)
-      create(:product_review, :rejected, product: product, reviewer: admin, reason: "เก่า", created_at: 2.days.ago)
-      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไก", created_at: 1.day.ago)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "เหตุผลรอบเก่า", created_at: 2.days.ago)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไกภายในเพิ่ม", created_at: 1.day.ago)
 
       get product_path(product)
 
       expect(response.body).to include("ขอรูปกลไก")
       expect(response.body).not_to include("สมชาย แอดมิน")
+    end
+  end
+
+  describe "GET /products/:id page (seller view)" do
+    let(:admin) { create(:user, :admin, name: "สมชาย แอดมิน") }
+
+    before { sign_in seller }
+
+    it "shows a rejected product with the reason in quotes, the date in Buddhist era and a fix button" do
+      product = create(:product, :rejected, seller: seller)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไกภายในเพิ่ม")
+
+      get product_path(product)
+
+      expect(response.body).to include('role="alert"', "ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่", "“ขอรูปกลไกภายในเพิ่ม”", "แก้ไขและส่งใหม่")
+      expect(response.body).to include(edit_product_path(product), "#{Time.current.year + 543}")
+    end
+
+    it "still offers the fix button when a rejected product has no review record" do
+      product = create(:product, :rejected, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).to include("ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่", edit_product_path(product))
+    end
+
+    it "does not offer a separate resubmit button for a rejected product" do
+      product = create(:product, :rejected, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).not_to include(product_submission_path(product))
+    end
+
+    it "explains a pending product and offers no editing" do
+      product = create(:product, :pending_review, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).to include("อยู่ระหว่างตรวจสอบ", "1–2 วันทำการ", "แก้ไขสินค้าไม่ได้")
+      expect(response.body).not_to include(edit_product_path(product))
+    end
+
+    it "explains an approved product without promising an email" do
+      get product_path(create(:product, :approved, seller: seller))
+
+      expect(response.body).to include("อนุมัติแล้ว — แก้ไขไม่ได้", "รอ Admin กำหนดวัน-เวลาประมูล")
+      expect(response.body).not_to include("อีเมล")
+    end
+
+    it "keeps submit, edit and delete for a draft" do
+      product = create(:product, :with_image, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).to include(product_submission_path(product), edit_product_path(product), "ลบ")
+    end
+
+    it "shows the gallery with a counter and one thumbnail link per image" do
+      product = create(:product, seller: seller)
+      product.images.attach([ image_blob, image_blob ])
+
+      get product_path(product)
+
+      expect(response.body).to include("1 / 2", 'aria-label="ดูรูปที่ 1"', 'aria-label="ดูรูปที่ 2"', 'data-controller="gallery"')
+    end
+
+    it "says so when there are no images yet" do
+      get product_path(create(:product, seller: seller))
+
+      expect(response.body).to include("ยังไม่มีรูป")
+    end
+
+    it "shows the summary without the admin only row and the draft hint" do
+      get product_path(create(:product, :pending_review, seller: seller))
+
+      expect(response.body).to include("ข้อมูลการลงสินค้า", "ไม่ได้แนบ", "รายละเอียดสินค้า")
+      expect(response.body).not_to include("(ค่าแนะนำ)", "ส่งตรวจล่าสุด")
+    end
+
+    it "shows the status history without the reviewer's identity" do
+      product = create(:product, :rejected, seller: seller)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไกภายในเพิ่ม")
+
+      get product_path(product)
+
+      expect(response.body).to include("ประวัติสถานะ", "สร้างฉบับร่าง", "ส่งตรวจสอบ")
+      expect(response.body).not_to include("สมชาย แอดมิน")
+    end
+
+    it "provides the mobile app bar with a back link and a pinned call to action for rejected products" do
+      get product_path(create(:product, :rejected, seller: seller))
+
+      expect(response.body).to include("data-mobile-bar", 'aria-label="กลับ"', "รายละเอียดสินค้า", "data-mobile-cta")
+    end
+
+    it "pins no call to action for a pending product" do
+      get product_path(create(:product, :pending_review, seller: seller))
+
+      expect(response.body).not_to include("data-mobile-cta")
     end
   end
 

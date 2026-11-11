@@ -1,0 +1,58 @@
+<%# locals: (product:, reason: nil, errors: []) %>
+<%# แถบตัดสินใจติดขอบล่าง + dialog ไม่อนุมัติ — อยู่ใต้ controller ตัวเดียวกันเพื่อให้ปุ่มในแถบเปิด dialog ได้ %>
+<% min = ProductReview::MIN_REJECTION_REASON %>
+<% length = reason.to_s.strip.length %>
+<% enough = length >= min %>
+<% presets = [ "รูปไม่ชัด", "ข้อมูลไม่ครบ", "ใบรับรองไม่ตรงกับสินค้า", "ราคาไม่สอดคล้องกับสภาพ" ] %>
+
+<div data-controller="reject-dialog" data-reject-dialog-open-value="<%= errors.any? %>" data-reject-dialog-min-value="<%= min %>">
+  <div aria-hidden="true" class="h-24"></div>
+  <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface shadow-[0_-8px_24px_-12px_hsl(240_6%_10%/.18)]">
+    <div class="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+      <p class="text-sm text-ink-2">ตรวจครบทุกรูปและใบรับรองแล้วจึงตัดสินใจ</p>
+      <div class="flex gap-3">
+        <button type="button" data-action="reject-dialog#open" class="btn-danger cursor-pointer px-5">ไม่อนุมัติ</button>
+        <%= button_to "อนุมัติ", admin_product_approval_path(product), class: "btn-success cursor-pointer px-6" %>
+      </div>
+    </div>
+  </div>
+
+  <dialog data-reject-dialog-target="dialog" data-action="click->reject-dialog#backdrop" aria-modal="true" aria-labelledby="reject-dialog-title"
+          class="m-0 mt-auto w-full max-w-none rounded-t-[18px] bg-surface p-0 shadow-lg backdrop:bg-scrim sm:m-auto sm:max-w-[520px] sm:rounded-[18px]">
+    <%= form_with url: admin_product_rejection_path(product), scope: :rejection, class: "flex flex-col gap-4 p-6" do |f| %>
+      <div class="flex items-start gap-3">
+        <span aria-hidden="true" class="flex size-10 shrink-0 items-center justify-center rounded-full bg-danger-soft text-lg font-bold text-danger">!</span>
+        <div>
+          <h2 id="reject-dialog-title" class="text-[19px] font-bold">ไม่อนุมัติสินค้านี้</h2>
+          <p class="text-sm text-ink-2">ผู้ขายจะเห็นเหตุผลนี้และแก้ไขแล้วส่งใหม่ได้</p>
+        </div>
+      </div>
+
+      <div>
+        <p class="field-label">เหตุผลที่พบบ่อย</p>
+        <div class="flex flex-wrap gap-2">
+          <% presets.each do |text| %>
+            <button type="button" class="chip-sm cursor-pointer" data-action="reject-dialog#preset" data-reject-dialog-text-param="<%= text %>">+ <%= text %></button>
+          <% end %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :reason, class: "field-label" do %>เหตุผล <span class="text-danger" aria-hidden="true">*</span> <span class="font-normal text-ink-2">(อย่างน้อย <%= min %> ตัวอักษร)</span><% end %>
+        <%= f.text_area :reason, value: reason, rows: 4, minlength: min, maxlength: 1000, required: true, class: "field-input",
+              aria: { invalid: errors.any? || nil, describedby: "reject-dialog-counter" },
+              data: { reject_dialog_target: "reason", action: "input->reject-dialog#update" } %>
+        <% errors.each do |message| %>
+          <p class="field-error" role="alert">ข้อผิดพลาด: <%= message %></p>
+        <% end %>
+        <p id="reject-dialog-counter" data-reject-dialog-target="counter" aria-live="polite"
+           class="mt-1 text-[13px] <%= enough ? "text-ink-2" : "text-danger" %>"><%= enough ? "#{length} ตัวอักษร" : "ต้องกรอกเหตุผลอย่างน้อย #{min} ตัวอักษร (ตอนนี้ #{length})" %></p>
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button type="button" data-action="reject-dialog#close" class="btn-secondary cursor-pointer">ยกเลิก</button>
+        <button type="submit" data-reject-dialog-target="submit" <%= "disabled" unless enough %> class="btn-danger-solid cursor-pointer">ยืนยันไม่อนุมัติ</button>
+      </div>
+    <% end %>
+  </dialog>
+</div>

@@ -1,38 +1,43 @@
 <% content_for :title, "ตรวจสอบ: #{@product.title}" %>
+<% rejection = @product.latest_rejection if @product.rejected? %>
+<% position = queue_position(@product) %>
+<% round = @product.resubmission_round %>
+<% meta = [ category_label(@product.category),
+            ("ส่งใหม่ครั้งที่ #{round}" if round > 1),
+            (thai_short_time(@product.submitted_at) if @product.submitted_at) ].compact.join(" · ") %>
 
-<%= link_to "← คิวรอตรวจสอบ", admin_products_path, class: "text-sm text-primary" %>
+<%= link_to (position ? "← คิวรอตรวจสอบ (#{position[0]} จาก #{position[1]})" : "← คิวรอตรวจสอบ"), admin_products_path, class: "text-sm" %>
 
-<div class="mt-2 flex flex-wrap items-start justify-between gap-3">
+<div class="mt-1 flex flex-wrap items-start justify-between gap-3">
   <div class="min-w-0">
-    <p class="text-sm text-ink-2"><%= category_label(@product.category) %> · ผู้ขาย <%= @product.seller.display_name %> (<%= @product.seller.email %>)</p>
+    <p class="text-sm text-ink-2"><%= meta %></p>
     <h1 class="text-[28px] leading-snug font-bold break-words"><%= @product.title %></h1>
   </div>
-  <%= status_badge(@product) %>
+  <%= status_badge(@product, size: :lg) %>
 </div>
 
-<div class="mt-6 grid gap-6 lg:grid-cols-[1fr_360px]">
-  <div class="flex min-w-0 flex-col gap-6">
-    <%= render "products/details", product: @product %>
+<% if @product.approved? %>
+  <p role="status" class="mt-4 rounded-xl border border-success/30 bg-success-soft px-5 py-3 text-success-ink"><strong>อนุมัติแล้ว</strong> · สินค้าพร้อมนำไปจัดประมูล</p>
+<% elsif @product.rejected? %>
+  <p role="status" class="mt-4 rounded-xl border border-danger/30 bg-danger-soft px-5 py-3 text-danger-ink">
+    <strong>ไม่อนุมัติแล้ว</strong><% if rejection&.reason.present? %> · ผู้ขายเห็นเหตุผล: “<%= rejection.reason %>”<% end %>
+  </p>
+<% end %>
+
+<div class="mt-6 flex flex-wrap items-start gap-6">
+  <div class="flex min-w-0 flex-[999_1_600px] flex-col gap-6">
+    <%= render "products/gallery", product: @product, ratio: "aspect-[4/3]", full_link: true %>
+    <%= render "admin/products/certificate", product: @product if @product.certificate.attached? %>
+    <%= render "products/description", product: @product, heading: "รายละเอียดจากผู้ขาย" %>
   </div>
 
-  <aside class="flex flex-col gap-6">
-    <% if @product.pending_review? %>
-      <section class="card flex flex-col gap-4" aria-label="ตัดสินผลการตรวจ">
-        <h2 class="text-lg font-semibold">ผลการตรวจ</h2>
-        <%= button_to "อนุมัติ", admin_product_approval_path(@product), class: "btn-primary w-full cursor-pointer",
-              form: { data: { turbo_confirm: "อนุมัติสินค้านี้?" } } %>
-
-        <%= form_with url: admin_product_rejection_path(@product), scope: :rejection, class: "flex flex-col gap-2" do |f| %>
-          <%= f.label :reason, "เหตุผลที่ไม่อนุมัติ", class: "field-label" %>
-          <%= f.text_area :reason, rows: 4, maxlength: 1000, required: true, class: "field-input",
-                placeholder: "เช่น รูปหน้าปัดไม่ชัด ขอรูปกลไกภายใน" %>
-          <p class="field-hint">ผู้ขายจะเห็นข้อความนี้ · ไม่เกิน 1,000 ตัวอักษร</p>
-          <%= f.submit "ไม่อนุมัติ", class: "btn-danger cursor-pointer" %>
-        <% end %>
-      </section>
-    <% end %>
-
-    <%= render "products/summary", product: @product %>
-    <%= render "products/history", product: @product, show_reviewer: true %>
+  <aside class="flex flex-[1_1_300px] flex-col gap-6 lg:max-w-[380px]">
+    <%= render "products/listing_summary", product: @product %>
+    <%= render "admin/products/seller_card", seller: @product.seller %>
+    <%= render "products/timeline", events: Products::Timeline.new(@product, audience: :admin).events, show_reason: true %>
   </aside>
 </div>
+
+<% if @product.pending_review? %>
+  <%= render "admin/products/decision", product: @product, reason: @rejection_reason, errors: @rejection_errors || [] %>
+<% end %>
