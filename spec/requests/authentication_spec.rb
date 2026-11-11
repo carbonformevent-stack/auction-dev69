@@ -57,5 +57,54 @@ RSpec.describe "Authentication" do
 
       expect(response).to redirect_to(new_user_session_path)
     end
+
+    context "when Keycloak is configured" do
+      before { stub_keycloak_env }
+
+      def logout_params
+        expect(response.location).to start_with("http://kc.test/realms/auction/protocol/openid-connect/logout?")
+        Rack::Utils.parse_query(URI(response.location).query)
+      end
+
+      it "sends the id_token from login as id_token_hint so Keycloak ends the SSO session" do
+        mock_keycloak_auth(id_token: "token-from-login")
+        get user_keycloak_omniauth_callback_path
+
+        delete destroy_user_session_path
+
+        expect(logout_params).to eq(
+          "client_id" => "auction-web",
+          "id_token_hint" => "token-from-login",
+          "post_logout_redirect_uri" => "http://www.example.com/"
+        )
+      end
+
+      it "omits id_token_hint when the session has no id_token (signed in before this fix)" do
+        sign_in create(:user)
+
+        delete destroy_user_session_path
+
+        expect(logout_params).not_to have_key("id_token_hint")
+      end
+
+      it "does not reuse the id_token after logout" do
+        mock_keycloak_auth
+        get user_keycloak_omniauth_callback_path
+        delete destroy_user_session_path
+
+        delete destroy_user_session_path
+
+        expect(logout_params).not_to have_key("id_token_hint")
+      end
+    end
+
+    it "renders the logout button with Turbo disabled (Keycloak is another origin)" do
+      sign_in create(:user)
+
+      get products_path
+
+      form = Nokogiri::HTML(response.body).at_css("form[action='#{destroy_user_session_path}']")
+      expect(form["data-turbo"]).to eq("false")
+    end
   end
 end

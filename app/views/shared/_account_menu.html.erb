@@ -24,7 +24,9 @@
           <%= link_to "แอดมิน", admin_products_path, class: nav_link_classes %>
         <% end %>
       <% end %>
+      <%# ปิด Turbo: logout redirect ไป Keycloak (คนละ origin) ซึ่ง fetch ของ Turbo ตามไม่ได้ (CORS) %>
       <%= button_to "ออกจากระบบ", destroy_user_session_path, method: :delete,
+            form: { data: { turbo: false } },
             class: "#{nav_link_classes} w-full cursor-pointer text-left text-ink-2" %>
     </nav>
   </div>
