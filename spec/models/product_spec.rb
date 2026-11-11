@@ -261,4 +261,39 @@ RSpec.describe Product do
       expect(product.reload.latest_rejection.reason).to eq("ล่าสุด")
     end
   end
+
+  describe "#review_overdue? (SLA 48 hours)" do
+    let(:now) { Time.zone.local(2026, 11, 11, 12, 0) }
+
+    before { travel_to(now) }
+
+    it "is overdue after more than 48 hours in the queue" do
+      expect(build(:product, :pending_review, submitted_at: now - 48.hours - 1.second)).to be_review_overdue
+    end
+
+    it "is not overdue at exactly 48 hours" do
+      expect(build(:product, :pending_review, submitted_at: now - 48.hours)).not_to be_review_overdue
+    end
+
+    it "is never overdue once it is not pending" do
+      expect(build(:product, :approved, submitted_at: now - 10.days)).not_to be_review_overdue
+    end
+
+    it "is not overdue without a submission time" do
+      expect(build(:product, status: :pending_review, submitted_at: nil)).not_to be_review_overdue
+    end
+  end
+
+  describe "#resubmission_round" do
+    it "is 1 for a product that was never rejected" do
+      expect(build(:product, :pending_review).resubmission_round).to eq(1)
+    end
+
+    it "counts every earlier rejection" do
+      product = build(:product, :pending_review)
+      2.times { product.reviews.build(reviewer: build(:user, :admin), decision: :rejected, reason: "ไม่ผ่าน") }
+
+      expect(product.resubmission_round).to eq(3)
+    end
+  end
 end
