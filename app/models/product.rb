@@ -41,6 +41,7 @@ class Product < ApplicationRecord
   validate :validate_images_present, on: :submit
 
   scope :review_queue, -> { pending_review.order(:submitted_at, :id) }
+  scope :for_admin_review, -> { includes(:seller, reviews: :reviewer).with_attached_images.with_attached_certificate }
 
   def editable?
     draft? || rejected?

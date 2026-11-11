@@ -12,7 +12,7 @@ module Admin
     end
 
     def show
-      @product = Product.includes(:seller, reviews: :reviewer).with_attached_images.find(params[:id])
+      @product = Product.for_admin_review.find(params[:id])
     end
   end
 end

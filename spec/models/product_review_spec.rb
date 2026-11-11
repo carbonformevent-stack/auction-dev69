@@ -12,6 +12,28 @@ RSpec.describe ProductReview do
       expect(review.errors[:reason]).to include("กรุณาระบุเหตุผล")
     end
 
+    it "needs at least 10 characters for a rejection" do
+      review = build(:product_review, :rejected, reason: "ก" * 9)
+
+      expect(review).not_to be_valid
+      expect(review.errors[:reason]).to include("เหตุผลต้องมีอย่างน้อย 10 ตัวอักษร")
+    end
+
+    it "accepts exactly 10 characters for a rejection" do
+      expect(build(:product_review, :rejected, reason: "ก" * 10)).to be_valid
+    end
+
+    it "does not also complain about the length when the reason is blank" do
+      review = build(:product_review, decision: :rejected, reason: "   ")
+      review.validate
+
+      expect(review.errors[:reason]).to eq([ "กรุณาระบุเหตุผล" ])
+    end
+
+    it "does not apply the minimum to an approval note" do
+      expect(build(:product_review, decision: :approved, reason: "ok")).to be_valid
+    end
+
     it "is optional for an approval" do
       expect(build(:product_review, decision: :approved, reason: nil)).to be_valid
     end

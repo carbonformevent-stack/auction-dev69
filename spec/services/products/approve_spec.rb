@@ -28,7 +28,7 @@ RSpec.describe Products::Approve do
 
     described_class.call(product: first, reviewer: admin)
 
-    expect { Products::Reject.call(product: second, reviewer: create(:user, :admin), reason: "ช้าไป") }
+    expect { Products::Reject.call(product: second, reviewer: create(:user, :admin), reason: "ตัดสินช้าไปแล้ว") }
       .to raise_error(Product::InvalidTransition)
     expect(product.reload).to be_approved
     expect(product.reviews.count).to eq(1)

@@ -69,7 +69,7 @@ RSpec.describe "Seller product detail" do
   describe "on mobile" do
     let(:product) do
       create(:product, :rejected, seller: seller, title: "ภาพวาดชายทะเล").tap do |rejected|
-        create(:product_review, :rejected, product: rejected, reviewer: admin, reason: "รูปไม่ชัด")
+        create(:product_review, :rejected, product: rejected, reviewer: admin, reason: "รูปไม่ชัด ขอรูปเพิ่ม")
       end
     end
 

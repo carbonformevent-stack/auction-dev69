@@ -255,10 +255,10 @@ RSpec.describe Product do
   describe "#latest_rejection" do
     it "returns the most recent rejected review" do
       product = create(:product, :rejected)
-      create(:product_review, :rejected, product: product, reason: "เก่า", created_at: 2.days.ago)
-      create(:product_review, :rejected, product: product, reason: "ล่าสุด", created_at: 1.day.ago)
+      create(:product_review, :rejected, product: product, reason: "เหตุผลรอบเก่า", created_at: 2.days.ago)
+      create(:product_review, :rejected, product: product, reason: "เหตุผลรอบล่าสุด", created_at: 1.day.ago)
 
-      expect(product.reload.latest_rejection.reason).to eq("ล่าสุด")
+      expect(product.reload.latest_rejection.reason).to eq("เหตุผลรอบล่าสุด")
     end
   end
 

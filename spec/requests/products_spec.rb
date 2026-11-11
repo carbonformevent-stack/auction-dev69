@@ -166,8 +166,8 @@ RSpec.describe "Products" do
     it "shows the latest rejection reason without the admin's identity (#14 AC3, #18 AC3, #19 AC3)" do
       admin = create(:user, :admin, name: "สมชาย แอดมิน")
       product = create(:product, :rejected, seller: seller)
-      create(:product_review, :rejected, product: product, reviewer: admin, reason: "เก่า", created_at: 2.days.ago)
-      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไก", created_at: 1.day.ago)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "เหตุผลรอบเก่า", created_at: 2.days.ago)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไกภายในเพิ่ม", created_at: 1.day.ago)
 
       get product_path(product)
 
@@ -183,11 +183,11 @@ RSpec.describe "Products" do
 
     it "shows a rejected product with the reason in quotes, the date in Buddhist era and a fix button" do
       product = create(:product, :rejected, seller: seller)
-      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไก")
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไกภายในเพิ่ม")
 
       get product_path(product)
 
-      expect(response.body).to include('role="alert"', "ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่", "“ขอรูปกลไก”", "แก้ไขและส่งใหม่")
+      expect(response.body).to include('role="alert"', "ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่", "“ขอรูปกลไกภายในเพิ่ม”", "แก้ไขและส่งใหม่")
       expect(response.body).to include(edit_product_path(product), "#{Time.current.year + 543}")
     end
 
@@ -255,7 +255,7 @@ RSpec.describe "Products" do
 
     it "shows the status history without the reviewer's identity" do
       product = create(:product, :rejected, seller: seller)
-      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไก")
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไกภายในเพิ่ม")
 
       get product_path(product)
 
