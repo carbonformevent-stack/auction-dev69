@@ -1,0 +1,49 @@
+<%# locals: (landing:) %>
+<section class="border-t border-line bg-canvas">
+  <div class="mx-auto max-w-[1200px] px-4 py-14 sm:px-6">
+    <h2 class="text-2xl font-bold">เลือกตามหมวด</h2>
+    <ul class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <% landing.categories.each do |category| %>
+        <li class="flex items-center gap-3 rounded-xl border border-line bg-surface p-4">
+          <span class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary-soft text-primary">
+            <%= category_icon(category.key, size: 20) %>
+          </span>
+          <span class="min-w-0">
+            <span class="block font-semibold"><%= category_label(category.key) %></span>
+            <span class="block truncate text-[13px] text-ink-2"><%= category.examples %></span>
+          </span>
+        </li>
+      <% end %>
+    </ul>
+
+    <div id="auctions" class="scroll-mt-20 pt-14" data-controller="tabs">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <h2 class="text-2xl font-bold">การประมูล</h2>
+        <div role="tablist" aria-label="สถานะการประมูล" class="inline-flex rounded-lg bg-muted-2 p-1 text-sm font-medium">
+          <% [ [ "live", "กำลังประมูล" ], [ "upcoming", "กำลังจะเริ่ม" ] ].each_with_index do |(key, label), index| %>
+            <button type="button" role="tab" id="tab-<%= key %>" aria-controls="panel-<%= key %>"
+                    aria-selected="<%= index.zero? %>" tabindex="<%= index.zero? ? 0 : -1 %>"
+                    data-tabs-target="tab" data-action="tabs#select keydown->tabs#navigate"
+                    class="min-h-9 cursor-pointer rounded-md px-3 text-ink-2 aria-selected:bg-surface aria-selected:text-ink aria-selected:shadow-sm">
+              <%= label %>
+            </button>
+          <% end %>
+        </div>
+      </div>
+
+      <% { "live" => landing.live_auctions, "upcoming" => landing.upcoming_auctions }.each_with_index do |(key, auctions), index| %>
+        <ul id="panel-<%= key %>" role="tabpanel" aria-labelledby="tab-<%= key %>" data-tabs-target="panel"
+            class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4" <%= "hidden" unless index.zero? %>>
+          <% auctions.each do |auction| %>
+            <li><%= render "home/auction_card", auction: auction, now: landing.now %></li>
+          <% end %>
+        </ul>
+      <% end %>
+
+      <%# TODO: ยังไม่มีหน้ารวมการประมูล — เปลี่ยนเป็น auctions_path เมื่อมี %>
+      <p class="mt-8 text-center">
+        <a href="#auctions" class="text-sm font-semibold text-primary underline underline-offset-4">ดูการประมูลทั้งหมด →</a>
+      </p>
+    </div>
+  </div>
+</section>

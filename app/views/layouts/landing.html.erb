@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="th" class="scroll-smooth">
+  <head>
+    <%= render "layouts/head" %>
+  </head>
+
+  <%# หน้าแรกสำหรับผู้เยี่ยมชม — header/footer แบบ marketing และ section เต็มความกว้าง %>
+  <body class="min-h-screen bg-surface font-sans text-base leading-relaxed text-ink">
+    <header class="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+      <div class="mx-auto flex max-w-[1200px] items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
+        <div class="flex items-center gap-2.5">
+          <%= link_to root_path, class: "flex items-center gap-2.5 text-lg font-bold text-ink no-underline" do %>
+            <span aria-hidden="true" class="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-on-primary">ป</span>
+            ประมูลสินค้าสะสม
+          <% end %>
+          <span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-ink">Beta</span>
+        </div>
+
+        <nav aria-label="เมนูหน้าแรก" class="hidden items-center gap-1 text-sm font-medium lg:flex">
+          <% [ [ "การประมูล", "#auctions" ], [ "วิธีประมูล", "#how-it-works" ], [ "ลงขายสินค้า", "#sell" ], [ "คำถามที่พบบ่อย", "#faq" ] ].each do |label, href| %>
+            <%= link_to label, href, class: nav_link_classes %>
+          <% end %>
+        </nav>
+
+        <div class="flex items-center gap-2">
+          <% if user_signed_in? %>
+            <%= link_to "สินค้าของฉัน", products_path, class: "#{nav_link_classes} hidden text-sm font-medium sm:flex" %>
+            <%= render "shared/account_menu", variant: :avatar %>
+          <% else %>
+            <%= link_to "เข้าสู่ระบบ", new_user_session_path, class: "#{nav_link_classes} text-sm font-medium" %>
+            <%# สมัครสมาชิกผ่าน Keycloak หน้าเดียวกับเข้าสู่ระบบ %>
+            <%= link_to "สมัครสมาชิก", new_user_session_path, class: "btn-primary hidden min-h-10 px-4 text-sm sm:inline-flex" %>
+          <% end %>
+        </div>
+      </div>
+    </header>
+
+    <%= render "shared/toasts" %>
+
+    <main>
+      <%= yield %>
+    </main>
+
+    <footer class="border-t border-line bg-canvas">
+      <div class="mx-auto flex max-w-[1200px] flex-col gap-3 px-4 py-8 text-sm text-ink-2 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <p>© <%= Date.current.year + 543 %> ประมูลสินค้าสะสม · เวอร์ชันทดลอง</p>
+        <%# TODO: ยังไม่มีหน้าเหล่านี้ — ใส่ลิงก์จริงเมื่อมีเนื้อหา %>
+        <nav aria-label="ลิงก์ท้ายหน้า" class="flex flex-wrap gap-x-5 gap-y-2">
+          <% [ "เงื่อนไขการใช้งาน", "นโยบายความเป็นส่วนตัว", "ส่งความคิดเห็น", "ติดต่อเรา" ].each do |label| %>
+            <a href="#" class="text-ink-2 underline underline-offset-4 hover:text-ink"><%= label %></a>
+          <% end %>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>
