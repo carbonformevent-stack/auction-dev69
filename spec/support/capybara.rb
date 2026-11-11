@@ -5,19 +5,20 @@ require "capybara/cuprite"
 DESKTOP_SIZE = [ 1280, 900 ].freeze
 MOBILE_SIZE = [ 390, 844 ].freeze
 
-Capybara.register_driver(:cuprite) do |app|
-  Capybara::Cuprite::Driver.new(
-    app,
-    window_size: DESKTOP_SIZE,
+# ตัวเลือกของ Chrome ต้องส่งผ่าน `driven_by ... options:` เท่านั้น
+# (Capybara.register_driver เองไม่พอ: driven_by :cuprite ของ Rails ลงทะเบียนไดรเวอร์ชื่อเดิมทับทุกครั้ง
+#  ด้วยตัวเลือกของมันเอง ทำให้ค่าที่ตั้งไว้ที่อื่นหายไปเงียบ ๆ — เคยทำให้ Chrome เปิดไม่ขึ้นบน CI)
+# คืน hash ใหม่ทุกครั้ง เพราะ Rails แก้ hash ที่รับไป (options.delete(:name))
+def cuprite_options
+  {
     headless: true,
-    # CI (Linux container) ต้องปิด sandbox ของ Chrome
+    # GitHub Actions (Ubuntu) จำกัด sandbox ของ Chrome — ต้องปิดบน CI ไม่งั้นเปิดไม่ขึ้น (ดู spec/system/browser_config_spec.rb)
     browser_options: ENV["CI"] ? { "no-sandbox" => nil } : {},
-    process_timeout: 20,
-    timeout: 10
-  )
+    process_timeout: 30,
+    timeout: 15
+  }
 end
 
-Capybara.javascript_driver = :cuprite
 Capybara.default_max_wait_time = 3
 # ค้นปุ่ม/ลิงก์ด้วย aria-label ได้ — ตรงกับชื่อที่ screen reader อ่านให้ผู้ใช้
 Capybara.enable_aria_label = true
@@ -42,7 +43,7 @@ end
 RSpec.configure do |config|
   config.include BrowserHelpers, type: :system
 
-  config.before(:each, type: :system) { driven_by :cuprite }
+  config.before(:each, type: :system) { driven_by :cuprite, screen_size: DESKTOP_SIZE, options: cuprite_options }
   # ไฟล์ที่อัปโหลดและ Active Storage ใช้ service :test เหมือน request spec
   config.after(:each, type: :system) { resize_to_desktop }
 end
