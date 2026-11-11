@@ -22,6 +22,11 @@ module Auction
     # in config/environments, which are processed later.
     #
     config.time_zone = "Asia/Bangkok"
+
+    # UI ภาษาไทย — ข้อความที่ยังไม่มีแปล (เช่นของ Devise) ใช้ภาษาอังกฤษแทน
+    config.i18n.available_locales = %i[th en]
+    config.i18n.default_locale = :th
+    config.i18n.fallbacks = [ :en ]
     # config.eager_load_paths << Rails.root.join("extras")
   end
 end

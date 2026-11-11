@@ -5,6 +5,8 @@ class User < ApplicationRecord
 
   enum :role, { user: 0, admin: 1 }, default: :user, validate: true
 
+  has_many :products, foreign_key: :seller_id, inverse_of: :seller, dependent: :restrict_with_exception
+
   validates :email, presence: true, uniqueness: { case_sensitive: false }
   validates :provider, :uid, presence: true
   validates :uid, uniqueness: { scope: :provider }
