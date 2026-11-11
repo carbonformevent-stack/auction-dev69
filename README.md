@@ -29,6 +29,7 @@
 ```bash
 # 1. Ruby ตาม .ruby-version
 mise install ruby@4.0.9 && mise use ruby@4.0.9
+ruby -v    # ข้อ 0: ต้องได้ 4.0.9 ก่อนทำข้อถัดไป — ถ้าไม่ใช่ ดู "ปัญหาที่พบบ่อย" ด้านล่าง
 
 # 2. Keycloak สำหรับ dev (import realm "auction" ให้อัตโนมัติ ใช้เวลาเริ่มครั้งแรก ~20 วินาที)
 docker compose up -d keycloak
@@ -65,12 +66,38 @@ bin/dev
 เปิด http://localhost:3000/sign_in จะมีปุ่ม **เข้าเป็นผู้ขายทดสอบ** (`seller@example.test`) และ **เข้าเป็นแอดมินทดสอบ** (`admin@example.test`)
 ปุ่มนี้ทำงานเฉพาะ `development` และต้องตั้ง `DEV_LOGIN=1` เองเท่านั้น (ดู `config/initializers/dev_login.rb`) — ใน production ปุ่มไม่แสดงและไม่มีทางใช้
 
+- `db:seed` ต้องขึ้นบรรทัด `Seeded dev data: 3 users, 7 products …` ถ้าไม่ขึ้น แปลว่ายังไม่ได้สร้างข้อมูล (ล็อกอินได้แต่ไม่มีสินค้า และแอดมินจะได้ 403)
+- ค่า `.env` อ่านตอนเปิดเซิร์ฟเวอร์ครั้งเดียว — ตั้ง/ลบ `DEV_LOGIN` แล้วต้องรีสตาร์ท `bin/dev`
+- ตั้ง `DEV_LOGIN=1` แล้วปุ่มจำลองจะอยู่คู่กับปุ่ม Keycloak — ถ้าจะทดสอบ Keycloak จริง ให้ลบบรรทัด `DEV_LOGIN` ออกแล้วรีสตาร์ท
+
 ### ตั้ง Admin คนแรก
 
 ```bash
 # login ผ่าน Keycloak 1 ครั้งก่อน เพื่อให้ระบบสร้าง User
 bin/rails db:seed    # ใช้ ADMIN_EMAIL จาก .env (ค่าตั้งต้น admin@example.com)
 ```
+
+### ทำงานผ่าน fork (ถ้า clone จาก fork ของตัวเอง)
+
+ถ้า `git remote -v` แสดงว่า `origin` ชี้ไป repo ส่วนตัว ไม่ใช่ `carbonformevent-stack/auction-dev69` ให้เพิ่ม remote ชื่อ `upstream` ชี้ไป repo ของทีม:
+
+```bash
+git remote add upstream git@github.com:carbonformevent-stack/auction-dev69.git   # หรือ https://github.com/carbonformevent-stack/auction-dev69.git
+git fetch upstream
+git pull upstream main                # ดึงโค้ดล่าสุดของทีม (ต้องมี "upstream main" — `git pull` เฉย ๆ จะดึงจาก fork ที่อาจเก่ากว่า)
+git branch -u upstream/main main      # (ไม่บังคับ) ให้ `git pull` บน main ดึงจากทีมโดยอัตโนมัติ
+```
+
+ถ้า clone จาก repo ของทีมโดยตรงอยู่แล้ว ไม่ต้องทำข้อนี้ ใช้ `git pull` ปกติ — งานใหม่ส่งผ่าน Pull Request เท่านั้น (ห้าม push เข้า `main` ตรง ๆ ดู [CONTRIBUTING.md](CONTRIBUTING.md))
+
+### ปัญหาที่พบบ่อย
+
+| อาการ | สาเหตุ / วิธีแก้ |
+|---|---|
+| `There was an error parsing Gemfile: 'windows' is not a valid platform` | ใช้ Ruby เก่า (เช่น `/usr/bin/ruby` 2.6 ของ macOS) — `ruby -v` ต้องเป็น 4.0.9: ใช้ `mise use ruby@4.0.9` หรือเพิ่ม `eval "$(rbenv init - zsh)"` ใน `~/.zshrc` แล้วเปิดเทอร์มินัลใหม่ · ทางลัด: นำหน้าคำสั่งด้วย `rbenv exec bundle exec` (เช่น `rbenv exec bundle exec rails db:seed`; ห้ามเขียน `rbenv exec bin/rails`) |
+| `git pull` ฟ้องว่า `Gemfile.lock` ถูกแก้ในเครื่อง | Bundler เติม platform ของเครื่อง (เช่น `arm64-darwin-27`) ให้เอง — ถ้า `git diff Gemfile.lock` เห็นแค่บรรทัดนั้น ใช้ `git restore Gemfile.lock` แล้ว pull ใหม่ (ทำก่อน `bundle install` เสมอ เพราะ `bundle install` จะเติมบรรทัดกลับเข้ามา) |
+| `git pull` บอก "Already up to date" แต่ยังไม่ได้ของใหม่ | ดึงจาก fork ที่เก่ากว่า — ใช้ `git pull upstream main` (ดูหัวข้อ fork ด้านบน) |
+| เปิดแอปแล้วไม่เห็นหน้า/ปุ่มใหม่ | เซิร์ฟเวอร์ยังเป็นตัวเก่า — หยุด (`Ctrl+C`) แล้วเปิด `bin/dev` ใหม่ · ค่า `.env` และ `config/initializers/` อ่านตอนเปิดครั้งเดียว |
 
 ## คำสั่งที่ใช้บ่อย
 
