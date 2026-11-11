@@ -114,6 +114,14 @@ RSpec.describe "Product form" do
       expect(flash[:notice]).to include("ส่งตรวจสอบแล้ว", "นาฬิกาพก")
     end
 
+    it "stores the uploaded files, not just their records" do
+      post products_path, params: submit_params.deep_merge(product: { certificate: fixture_upload("certificate.pdf") })
+
+      product = Product.last
+      expect(product.images.map { |image| image.blob.service.exist?(image.key) }).to all(be(true))
+      expect(product.certificate.blob.service.exist?(product.certificate.key)).to be(true)
+    end
+
     it "creates nothing and explains what is missing when there are no images" do
       expect { post products_path, params: valid_params.merge(submit_for_review: "1") }.not_to change(Product, :count)
 
@@ -139,6 +147,15 @@ RSpec.describe "Product form" do
 
       expect(product.reload).to have_attributes(title: "แก้ตามที่ขอ", status: "pending_review")
       expect(response).to redirect_to(products_path)
+    end
+
+    it "stores newly uploaded files when resubmitting" do
+      product = create(:product, :rejected, seller: seller)
+
+      patch product_path(product), params: { product: { images: [ fixture_upload("image.png") ] }, submit_for_review: "1" }
+
+      new_image = product.reload.images.find { |image| image.filename.to_s == "image.png" }
+      expect(new_image.blob.service.exist?(new_image.key)).to be(true)
     end
 
     it "changes nothing when the new data is invalid" do
