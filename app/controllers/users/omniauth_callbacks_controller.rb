@@ -1,7 +1,10 @@
 module Users
   class OmniauthCallbacksController < Devise::OmniauthCallbacksController
     def keycloak
-      user = User.from_omniauth(request.env["omniauth.auth"])
+      auth = request.env["omniauth.auth"]
+      user = User.from_omniauth(auth)
+      # เก็บ id_token ไว้ส่งเป็น id_token_hint ตอน logout — Keycloak จะปิด SSO session ทันทีโดยไม่ถามยืนยัน
+      session[SessionsController::ID_TOKEN_KEY] = auth.credentials&.id_token
       set_flash_message(:notice, :success, kind: "Keycloak") if is_navigational_format?
       sign_in_and_redirect user, event: :authentication
     rescue ActiveRecord::RecordInvalid => e
