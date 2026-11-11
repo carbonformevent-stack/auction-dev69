@@ -4,7 +4,12 @@ class ProductsController < ApplicationController
   before_action :ensure_editable, only: %i[edit update]
 
   def index
-    @products = current_user.products.with_attached_images.order(updated_at: :desc)
+    owned = current_user.products
+    @status_counts = owned.group(:status).count
+    @status = Product.statuses.key?(params[:status].to_s) ? params[:status].to_s : nil
+
+    scope = @status ? owned.where(status: @status) : owned
+    @products = scope.includes(:reviews).with_attached_images.with_attached_certificate.order(updated_at: :desc)
   end
 
   def show; end

@@ -47,6 +47,113 @@ RSpec.describe "Products" do
     end
   end
 
+  describe "GET /products status tabs" do
+    before do
+      sign_in seller
+      create(:product, seller: seller, title: "ร่างหนึ่ง")
+      create(:product, :pending_review, seller: seller, title: "รอตรวจหนึ่ง")
+      create(:product, :approved, seller: seller, title: "อนุมัติหนึ่ง")
+      create_list(:product, 2, :rejected, seller: seller, title: "ตีกลับหนึ่ง")
+      create(:product, :pending_review, seller: other, title: "ของคนอื่น")
+    end
+
+    it "offers a tab per status with counts for the current seller only" do
+      get products_path
+
+      expect(response.body).to include('aria-label="กรองตามสถานะ"')
+      expect(response.body.scan(/data-status-tab="(\w+)" data-count="(\d+)"/))
+        .to eq([ %w[all 5], %w[draft 1], %w[pending_review 1], %w[approved 1], %w[rejected 2] ])
+    end
+
+    it "marks the all tab as current by default" do
+      get products_path
+
+      expect(response.body).to match(/aria-current="true"[^>]*data-status-tab="all"|data-status-tab="all"[^>]*aria-current="true"/)
+    end
+
+    it "filters by status and marks that tab current" do
+      get products_path(status: "rejected")
+
+      expect(response.body.scan('alt="ตีกลับหนึ่ง"').size).to eq(2)
+      expect(response.body).not_to include("ร่างหนึ่ง", "อนุมัติหนึ่ง")
+      expect(response.body).to match(/aria-current="true"[^>]*data-status-tab="rejected"|data-status-tab="rejected"[^>]*aria-current="true"/)
+    end
+
+    it "ignores an unknown status and shows everything" do
+      get products_path(status: "hacked")
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("ร่างหนึ่ง", "อนุมัติหนึ่ง")
+    end
+
+    it "ignores a non-string status parameter" do
+      get products_path, params: { status: { "a" => "b" } }
+
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "explains an empty filter and keeps the tabs" do
+      seller.products.where(status: :approved).destroy_all
+
+      get products_path(status: "approved")
+
+      expect(response.body).to include("ไม่มีสินค้าในสถานะนี้", "ลองเลือกสถานะอื่น หรือลงสินค้าใหม่", 'aria-label="กรองตามสถานะ"')
+    end
+  end
+
+  describe "GET /products rows" do
+    before { sign_in seller }
+
+    it "shows a status specific action on every row" do
+      create(:product, seller: seller)
+      create(:product, :pending_review, seller: seller)
+      create(:product, :rejected, seller: seller)
+
+      get products_path
+
+      expect(response.body).to include("แก้ไขต่อ", "ดูรายละเอียด", "แก้ไขและส่งใหม่")
+    end
+
+    it "shows the rejection reason in the row" do
+      product = create(:product, :rejected, seller: seller)
+      create(:product_review, :rejected, product: product, reason: "รูปหน้าปัดเบลอ")
+
+      get products_path
+
+      expect(response.body).to include("ไม่อนุมัติ", "รูปหน้าปัดเบลอ")
+    end
+
+    it "loads reviews with a single query however many products there are" do
+      create_list(:product, 3, :rejected, seller: seller)
+      queries = []
+      counter = ->(*, payload) { queries << payload[:sql] if payload[:sql].include?('FROM "product_reviews"') }
+
+      ActiveSupport::Notifications.subscribed(counter, "sql.active_record") { get products_path }
+
+      expect(queries.size).to be <= 1
+    end
+
+    it "does not show the tabs when the seller has no products at all" do
+      get products_path
+
+      expect(response.body).not_to include('aria-label="กรองตามสถานะ"')
+    end
+
+    it "shows the first-listing empty state" do
+      get products_path
+
+      expect(response.body).to include("ยังไม่มีสินค้า", "ลงสินค้าชิ้นแรก", "ทีมผู้เชี่ยวชาญจะตรวจสอบก่อนนำไปจัดประมูล")
+    end
+
+    it "offers the listing button both in the header and as the mobile call to action" do
+      create(:product, seller: seller)
+
+      get products_path
+
+      expect(response.body.scan(%r{href="#{Regexp.escape(new_product_path)}"}).size).to eq(2)
+    end
+  end
+
   describe "GET /products/:id" do
     before { sign_in seller }
 

@@ -3,40 +3,68 @@
   <%= render "shared/mobile_bar", title: "สินค้าของฉัน", extra: "โหมดผู้ขาย" %>
 <% end %>
 
+<% plus_icon = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'.html_safe %>
+<% has_products = @status_counts.values.sum.positive? %>
+
 <div class="flex flex-wrap items-end justify-between gap-3">
   <div>
-    <h1 class="text-[28px] leading-snug font-bold">สินค้าของฉัน</h1>
-    <p class="mt-1 text-[15px] text-ink-2">ลงสินค้า ติดตามสถานะการตรวจสอบ และแก้ไขสินค้าที่ถูกส่งกลับ</p>
+    <h1 class="sr-only text-[28px] leading-snug font-bold sm:not-sr-only">สินค้าของฉัน</h1>
+    <p class="mt-1 hidden text-[15px] text-ink-2 sm:block">ลงสินค้า ติดตามสถานะการตรวจสอบ และแก้ไขสินค้าที่ถูกส่งกลับ</p>
   </div>
-  <%= link_to "+ ลงสินค้าใหม่", new_product_path, class: "btn-primary" %>
+  <%= link_to new_product_path, class: "btn-primary hidden sm:inline-flex" do %><%= plus_icon %>ลงสินค้าใหม่<% end %>
 </div>
 
+<% if has_products %>
+  <div class="sm:mt-6">
+    <%= render "products/status_tabs", counts: @status_counts, current: @status %>
+  </div>
+<% end %>
+
 <% if @products.any? %>
-  <ul class="mt-6 flex flex-col gap-2.5">
+  <ul class="mt-4 flex flex-col gap-2.5">
     <% @products.each do |product| %>
       <li>
-        <%= link_to product, class: "flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-3 text-ink no-underline hover:border-primary" do %>
-          <%= product_thumb(product.cover_image, alt: product.title) %>
-          <div class="min-w-0 flex-[1_1_260px]">
-            <p class="text-[13px] text-ink-2"><%= category_label(product.category) %></p>
-            <p class="truncate font-semibold"><%= product.title %></p>
-            <p class="text-[13px] text-ink-2">แก้ไขล่าสุด <%= thai_time(product.updated_at) %> · <%= product.images.size %> รูป</p>
+        <%= link_to product, class: "flex items-center gap-3 rounded-xl border border-line bg-surface p-3 text-ink no-underline hover:border-primary sm:gap-4" do %>
+          <%= product_thumb(product.cover_image, alt: product.title, class_name: "size-16 sm:size-18") %>
+          <div class="min-w-0 flex-1">
+            <p class="hidden text-[13px] text-ink-2 sm:block"><%= category_label(product.category) %></p>
+            <p class="line-clamp-2 leading-snug font-semibold sm:line-clamp-none sm:truncate"><%= product.title %></p>
+            <p class="text-[13px] text-ink-2 sm:hidden"><%= category_label(product.category) %> · <%= baht(product.starting_price) %></p>
+            <p class="mt-1 sm:hidden"><%= status_badge(product, size: :sm) %></p>
+            <p class="hidden text-[13px] text-ink-2 sm:block"><%= product_meta(product) %></p>
           </div>
-          <div class="flex flex-wrap items-center gap-5">
+          <div class="hidden items-center gap-5 sm:flex">
             <span class="min-w-24 text-right">
               <span class="block text-xs text-ink-2">ราคาเริ่มต้น</span>
               <span class="text-[17px] font-semibold tabular-nums"><%= baht(product.starting_price) %></span>
             </span>
-            <%= status_badge(product) %>
+            <span class="min-w-[108px] text-center"><%= status_badge(product) %></span>
+            <span class="min-w-[120px] text-sm font-medium text-primary"><%= product_action_label(product) %> →</span>
           </div>
         <% end %>
       </li>
     <% end %>
   </ul>
+<% elsif has_products %>
+  <div class="empty-state mt-4 bg-surface">
+    <h2 class="text-lg font-semibold">ไม่มีสินค้าในสถานะนี้</h2>
+    <p class="mt-1 text-sm text-ink-2">ลองเลือกสถานะอื่น หรือลงสินค้าใหม่</p>
+  </div>
 <% else %>
-  <div class="mt-6 flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-14 text-center">
-    <h2 class="text-xl font-semibold">ยังไม่มีสินค้า</h2>
-    <p class="max-w-md text-[15px] text-ink-2">เริ่มลงสินค้าสะสมชิ้นแรกของคุณ ทีมตรวจสอบจะตรวจก่อนนำไปจัดประมูล</p>
-    <%= link_to "ลงสินค้า", new_product_path, class: "btn-primary mt-2" %>
+  <div class="empty-state mt-6 flex flex-col items-center gap-2.5 bg-surface">
+    <span aria-hidden="true" class="flex size-16 items-center justify-center rounded-full bg-primary-soft text-primary">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>
+    </span>
+    <h2 class="text-lg font-semibold">ยังไม่มีสินค้า</h2>
+    <p class="max-w-md text-[15px] text-ink-2">เริ่มลงสินค้าสะสมชิ้นแรกของคุณ ทีมผู้เชี่ยวชาญจะตรวจสอบก่อนนำไปจัดประมูล</p>
+    <%= link_to "ลงสินค้าชิ้นแรก", new_product_path, class: "btn-primary mt-2" %>
+  </div>
+<% end %>
+
+<%# มือถือ: ปุ่มลงสินค้าติดขอบล่าง (เหลือที่ว่างท้ายรายการไม่ให้ถูกบัง) %>
+<% if has_products %>
+  <div aria-hidden="true" class="h-24 sm:hidden"></div>
+  <div class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface px-4 pt-3 pb-6 sm:hidden">
+    <%= link_to new_product_path, class: "btn-primary min-h-12 w-full" do %><%= plus_icon %>ลงสินค้าใหม่<% end %>
   </div>
 <% end %>

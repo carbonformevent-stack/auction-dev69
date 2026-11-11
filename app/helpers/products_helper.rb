@@ -34,6 +34,42 @@ module ProductsHelper
     end
   end
 
+  ACTION_LABELS = {
+    "draft" => "แก้ไขต่อ",
+    "pending_review" => "ดูรายละเอียด",
+    "approved" => "ดูรายละเอียด",
+    "rejected" => "แก้ไขและส่งใหม่"
+  }.freeze
+
+  # แท็บกรองสถานะ: [ค่า param, ป้ายเต็ม, ป้ายสั้นบนมือถือ]
+  STATUS_TABS = [
+    [ "all", "ทั้งหมด", "ทั้งหมด" ],
+    [ "draft", "ฉบับร่าง", "ฉบับร่าง" ],
+    [ "pending_review", "รอตรวจสอบ", "รอตรวจ" ],
+    [ "approved", "อนุมัติแล้ว", "อนุมัติ" ],
+    [ "rejected", "ไม่อนุมัติ", "ไม่อนุมัติ" ]
+  ].freeze
+
+  REASON_PREVIEW_LENGTH = 40
+
+  def product_action_label(product)
+    ACTION_LABELS.fetch(product.status)
+  end
+
+  # บรรทัดรายละเอียดใต้ชื่อสินค้าในรายการ — เปลี่ยนตามสถานะ
+  def product_meta(product)
+    images = product.images.size
+    photos = images.positive? ? "#{images} รูป" : "ยังไม่มีรูป"
+    certificate = product.certificate.attached? ? " · มีใบรับรอง" : ""
+
+    case product.status
+    when "draft" then "แก้ไขล่าสุด #{thai_short_time(product.updated_at)} · #{photos}#{certificate}"
+    when "pending_review" then "ส่งตรวจสอบ #{thai_short_time(product.submitted_at)} · #{photos}#{certificate}"
+    when "approved" then approved_meta(product)
+    when "rejected" then rejected_meta(product)
+    end
+  end
+
   def decision_label(review)
     DECISION_LABELS.fetch(review.decision)
   end
@@ -100,5 +136,21 @@ module ProductsHelper
     return tag.div("ไม่มีรูป", class: "#{class_name} flex shrink-0 items-center justify-center rounded-lg bg-muted text-xs text-ink-2") unless image
 
     image_tag(url_for(image), alt: alt, class: "#{class_name} shrink-0 rounded-lg object-cover bg-muted")
+  end
+
+  private
+
+  # สินค้าที่อนุมัติโดยไม่มี review (เช่น ข้อมูลเก่า) ใช้เวลาแก้ไขล่าสุดแทน
+  def approved_meta(product)
+    approved_at = product.reviews.select(&:approved?).last&.created_at || product.updated_at
+    "อนุมัติ #{thai_short_time(approved_at)} · รอ Admin จัดรอบประมูล"
+  end
+
+  def rejected_meta(product)
+    review = product.latest_rejection
+    meta = "ไม่อนุมัติ #{thai_short_time(review&.created_at || product.updated_at)}"
+    return meta if review&.reason.blank?
+
+    "#{meta} · #{truncate(review.reason.squish, length: REASON_PREVIEW_LENGTH + 1, omission: "…")}"
   end
 end
