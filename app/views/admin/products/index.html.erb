@@ -1,0 +1,30 @@
+<% content_for :title, "คิวรอตรวจสอบ" %>
+
+<h1 class="text-[28px] font-bold">คิวรอตรวจสอบ</h1>
+<p class="mt-1 text-[15px] text-ink-2">เรียงตามเวลาส่ง เก่าสุดก่อน · <%= @products.size %> รายการ</p>
+
+<% if @products.any? %>
+  <ol class="mt-6 flex flex-col gap-2.5">
+    <% @products.each do |product| %>
+      <li>
+        <%= link_to admin_product_path(product), class: "flex flex-wrap items-center gap-4 rounded-xl border border-line bg-surface p-3 text-ink no-underline hover:border-primary" do %>
+          <%= product_thumb(product.cover_image, alt: product.title) %>
+          <div class="min-w-0 flex-[1_1_260px]">
+            <p class="text-[13px] text-ink-2"><%= category_label(product.category) %></p>
+            <p class="truncate font-semibold"><%= product.title %></p>
+            <p class="text-[13px] text-ink-2">ผู้ขาย <%= product.seller.display_name %> · ส่ง <%= thai_time(product.submitted_at) %></p>
+          </div>
+          <span class="min-w-24 text-right">
+            <span class="block text-xs text-ink-2">ราคาเริ่มต้น</span>
+            <span class="text-[17px] font-semibold tabular-nums"><%= baht(product.starting_price) %></span>
+          </span>
+          <span class="text-sm font-medium text-primary">ตรวจสอบ →</span>
+        <% end %>
+      </li>
+    <% end %>
+  </ol>
+<% else %>
+  <div class="mt-6 rounded-2xl border border-dashed border-line-strong bg-surface px-6 py-14 text-center">
+    <h2 class="text-xl font-semibold">ไม่มีสินค้ารอตรวจ</h2>
+  </div>
+<% end %>
