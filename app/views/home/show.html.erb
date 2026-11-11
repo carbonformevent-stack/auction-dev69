@@ -1,13 +1,8 @@
-<h1>ระบบประมูลสินค้าสะสม</h1>
-<p>นาฬิกา · เครื่องประดับ · หนังสือเก่า · ภาพวาด</p>
+<% content_for :title, "ประมูลสินค้าสะสม — ของสะสมมีค่า ประมูลอย่างโปร่งใส" %>
+<% content_for :full_width, true %>
 
-<% if user_signed_in? %>
-  <p>สวัสดี <%= current_user.display_name %> (<%= current_user.role %>)</p>
-  <p><%= link_to "สินค้าของฉัน", products_path %> · <%= link_to "ลงสินค้าใหม่", new_product_path %></p>
-  <% if current_user.admin? %>
-    <p><%= link_to "ไปหน้า Admin", admin_root_path %></p>
-  <% end %>
-  <%= button_to "ออกจากระบบ", destroy_user_session_path, method: :delete %>
-<% else %>
-  <p><%= link_to "เข้าสู่ระบบ", new_user_session_path %></p>
-<% end %>
+<%= render "home/hero" %>
+<%= render "home/categories" %>
+<%= render "home/how_it_works" %>
+<%= render "home/seller_cta" %>
+<%= render "home/faq" %>

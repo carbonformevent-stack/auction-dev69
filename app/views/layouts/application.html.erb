@@ -37,6 +37,7 @@
             <span aria-hidden="true" class="flex size-8 items-center justify-center rounded-lg bg-primary font-bold text-on-primary">ป</span>
             ประมูลสินค้าสะสม
           <% end %>
+          <span class="rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-ink">Beta</span>
           <% if admin_area? %>
             <span class="rounded-full bg-ink px-2.5 py-0.5 text-xs font-semibold text-surface">แอดมิน</span>
           <% end %>
@@ -56,14 +57,30 @@
             </nav>
             <%= render "shared/account_menu", variant: :avatar %>
           </div>
+        <% else %>
+          <nav aria-label="เมนูหลัก" class="hidden items-center gap-1 text-sm font-medium md:flex">
+            <%= link_to "วิธีประมูล", root_path(anchor: "how-it-works"), class: nav_link_classes %>
+            <%= link_to "ลงขายสินค้า", new_product_path, class: nav_link_classes %>
+            <%= link_to "คำถามที่พบบ่อย", root_path(anchor: "faq"), class: nav_link_classes %>
+          </nav>
+          <div class="flex items-center gap-2">
+            <%= link_to "เข้าสู่ระบบ", new_user_session_path, class: nav_link_classes %>
+            <%= link_to "สมัครสมาชิก", new_user_session_path, class: "btn-primary min-h-10 px-4 text-sm" %>
+          </div>
         <% end %>
       </div>
     </header>
 
     <%= render "shared/toasts" %>
 
-    <main class="mx-auto max-w-[1200px] px-4 pt-4 pb-12 sm:px-6 sm:pt-7">
-      <%= yield %>
-    </main>
+    <% if content_for?(:full_width) %>
+      <main><%= yield %></main>
+    <% else %>
+      <main class="mx-auto max-w-[1200px] px-4 pt-4 pb-12 sm:px-6 sm:pt-7">
+        <%= yield %>
+      </main>
+    <% end %>
+
+    <%= render "shared/site_footer" %>
   </body>
 </html>

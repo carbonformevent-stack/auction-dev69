@@ -1,0 +1,26 @@
+<section aria-labelledby="seller-cta-heading" class="border-t border-line">
+  <div class="mx-auto max-w-[1200px] px-4 py-12 sm:px-6">
+    <div class="grid items-center gap-8 rounded-2xl bg-primary-soft p-6 sm:p-10 md:grid-cols-2">
+      <div>
+        <h2 id="seller-cta-heading" class="text-2xl font-bold text-primary-ink">มีของสะสมอยากขาย?</h2>
+        <p class="mt-2 text-primary-ink">
+          ลงสินค้าฟรี กำหนดราคาเริ่มต้นเองได้ตั้งแต่ <%= baht(Product::PRICE_RANGE.min) %> ถึง <%= baht(Product::PRICE_RANGE.max) %>
+          แนบรูปได้สูงสุด <%= Product::MAX_IMAGES %> รูป พร้อมใบรับรอง (ถ้ามี)
+        </p>
+        <%= link_to "เริ่มลงขายสินค้า", new_product_path, class: "btn-primary mt-5" %>
+      </div>
+      <ol class="space-y-3">
+        <% [
+             [ "ลงสินค้า", "ประเภท รายละเอียด รูป ราคาเริ่มต้น" ],
+             [ "ทีมงานตรวจสอบ", "อนุมัติ หรือแจ้งเหตุผลให้แก้แล้วส่งใหม่" ],
+             [ "เปิดประมูล", "ทีมงานจัดรอบประมูลให้ และแจ้งผลเมื่อปิดประมูล" ]
+           ].each.with_index(1) do |(title, body), number| %>
+          <li class="flex items-center gap-3 rounded-xl bg-surface p-4">
+            <%= step_number(number, class_name: "size-8 bg-primary-soft text-primary-ink") %>
+            <p><span class="font-semibold"><%= title %></span> <span class="text-ink-2">· <%= body %></span></p>
+          </li>
+        <% end %>
+      </ol>
+    </div>
+  </div>
+</section>

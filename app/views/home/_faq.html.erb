@@ -1,0 +1,26 @@
+<section id="faq" aria-labelledby="faq-heading" class="scroll-mt-4 border-t border-line">
+  <div class="mx-auto max-w-[760px] px-4 py-12 sm:px-6">
+    <h2 id="faq-heading" class="text-center text-2xl font-bold">คำถามที่พบบ่อย</h2>
+    <div class="mt-6 space-y-3">
+      <% [
+           [ "แก้ไขหรือถอนราคาที่เสนอไปแล้วได้ไหม",
+             "ไม่ได้ ในการประมูลแบบปิดผนึก แต่ละคนเสนอราคาได้ครั้งเดียว จึงควรตรวจราคาให้แน่ใจก่อนส่ง" ],
+           [ "ใครเห็นราคาที่ฉันเสนอบ้าง",
+             "ระหว่างประมูลไม่มีใครเห็นราคาของคุณ ทั้งผู้เสนอคนอื่น ผู้ขาย และทีมงาน คุณเห็นได้เฉพาะราคาของตัวเอง" ],
+           [ "ถ้ามีคนเสนอราคาเท่ากันจะเป็นอย่างไร",
+             "ผู้ที่เสนอราคานั้นก่อนเป็นผู้ชนะ" ],
+           [ "ชำระเงินและรับสินค้าอย่างไร",
+             "ช่วงทดลองนี้ ผู้ชนะและผู้ขายตกลงชำระเงินและส่งของกันเองนอกระบบ หลังปิดประมูล ระบบจะแสดงข้อมูลติดต่อให้ผู้ชนะและผู้ขายเห็นเท่านั้น" ]
+         ].each_with_index do |(question, answer), index| %>
+        <details class="group rounded-xl border border-line bg-surface" <%= "open" if index.zero? %>>
+          <summary class="flex min-h-12 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 font-semibold [&::-webkit-details-marker]:hidden">
+            <%= question %>
+            <span aria-hidden="true" class="text-xl text-primary group-open:hidden">+</span>
+            <span aria-hidden="true" class="hidden text-xl text-primary group-open:inline">−</span>
+          </summary>
+          <p class="px-4 pb-4 text-ink-2"><%= answer %></p>
+        </details>
+      <% end %>
+    </div>
+  </div>
+</section>

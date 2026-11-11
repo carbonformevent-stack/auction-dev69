@@ -1,0 +1,19 @@
+<section id="how-it-works" aria-labelledby="how-it-works-heading" class="scroll-mt-4 border-t border-line bg-surface">
+  <div class="mx-auto max-w-[1200px] px-4 py-12 sm:px-6">
+    <h2 id="how-it-works-heading" class="text-2xl font-bold">ประมูลแบบปิดผนึกทำงานอย่างไร</h2>
+    <p class="mt-1 text-ink-2">ไม่ต้องเฝ้าหน้าจอแข่งกดราคา ตัดสินใจครั้งเดียวว่าของชิ้นนี้มีค่าสำหรับคุณเท่าไร</p>
+    <ol class="mt-6 grid gap-4 md:grid-cols-3">
+      <% [
+           [ "เลือกสินค้าที่สนใจ", "ดูรูป รายละเอียด และใบรับรอง ทุกชิ้นผ่านการตรวจสอบโดยทีมงานก่อนเปิดประมูล" ],
+           [ "เสนอราคาครั้งเดียว", "ราคาต้องไม่ต่ำกว่าราคาเริ่มต้น ส่งแล้วแก้ไขไม่ได้ และไม่มีใครเห็นราคาของคุณ รวมทั้งผู้ขาย" ],
+           [ "ปิดประมูล ประกาศผล", "ผู้เสนอสูงสุดชนะและจ่ายตามราคาที่เสนอ ถ้าราคาเท่ากัน ผู้ที่เสนอก่อนชนะ" ]
+         ].each.with_index(1) do |(title, body), number| %>
+        <li class="card bg-canvas">
+          <%= step_number(number) %>
+          <h3 class="mt-4 font-semibold"><%= title %></h3>
+          <p class="mt-1 text-sm text-ink-2"><%= body %></p>
+        </li>
+      <% end %>
+    </ol>
+  </div>
+</section>

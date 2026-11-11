@@ -1,0 +1,40 @@
+<section class="bg-surface">
+  <div class="mx-auto grid max-w-[1200px] items-center gap-10 px-4 py-12 sm:px-6 md:grid-cols-2 md:py-20">
+    <div>
+      <p class="inline-block rounded-full bg-primary-soft px-3 py-1 text-[13px] font-semibold text-primary-ink">
+        ประมูลแบบปิดผนึก · ทุกชิ้นผ่านการตรวจสอบ
+      </p>
+      <h1 class="mt-4 text-4xl leading-tight font-bold sm:text-5xl">
+        ของสะสมมีค่า<br>ประมูลอย่างโปร่งใส
+      </h1>
+      <p class="mt-4 text-lg text-ink-2">
+        นาฬิกา เครื่องประดับ หนังสือเก่า และภาพวาด ที่ทีมตรวจสอบอนุมัติแล้ว
+        เสนอราคาได้ครั้งเดียวโดยไม่มีใครเห็นราคาของคุณ ผู้เสนอสูงสุดชนะ
+      </p>
+      <div class="mt-6 flex flex-wrap gap-3">
+        <%= link_to "ลงขายสินค้า", new_product_path, class: "btn-primary" %>
+        <%= link_to "ประมูลทำงานอย่างไร", root_path(anchor: "how-it-works"), class: "btn-outline" %>
+      </div>
+      <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-ink-2">
+        <% [ "ตรวจสอบก่อนเปิดประมูล", "ราคาถูกปิดเป็นความลับ", "สมัครฟรี" ].each do |point| %>
+          <li class="flex items-center gap-1.5"><span aria-hidden="true" class="font-bold text-success">✓</span><%= point %></li>
+        <% end %>
+      </ul>
+    </div>
+
+    <%# การ์ดประมูลจริงจะมาแทนที่ส่วนนี้หลังมี model Auction (#20, #37) %>
+    <div class="rounded-2xl border border-line bg-primary-soft p-6 sm:p-8">
+      <p class="text-sm font-semibold text-primary-ink">เร็วๆ นี้</p>
+      <p class="mt-1 text-2xl font-bold">เปิดประมูลรอบแรก</p>
+      <p class="mt-2 text-ink-2">ระหว่างนี้ลงสินค้าไว้ให้ทีมตรวจสอบก่อนได้เลย</p>
+      <div class="mt-6 grid grid-cols-2 gap-3">
+        <% Product.categories.each_key do |category| %>
+          <div class="flex items-center gap-3 rounded-xl bg-surface p-4">
+            <span class="text-primary"><%= category_icon(category) %></span>
+            <span class="font-medium"><%= category_label(category) %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</section>
