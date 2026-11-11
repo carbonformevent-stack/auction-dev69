@@ -1,0 +1,25 @@
+# สำหรับ local development เท่านั้น — Keycloak พร้อม realm "auction" ที่ import อัตโนมัติ
+#   docker compose up -d keycloak
+# Admin console: http://localhost:8080 (admin / admin)
+# User ตัวอย่างและ client ดูใน config/keycloak/auction-realm.json
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.7
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      # ให้ issuer เป็น localhost:8080 เสมอ ทั้งตอน browser login และตอน Rails ตรวจ token
+      KC_HOSTNAME: http://localhost:8080
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./config/keycloak:/opt/keycloak/data/import:ro
+    healthcheck:
+      # image ไม่มี curl — ใช้ bash /dev/tcp เรียก health endpoint (port 9000)
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/9000 && printf 'GET /health/ready HTTP/1.1\\r\\nHost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3 && grep -q '\"UP\"' <&3"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
