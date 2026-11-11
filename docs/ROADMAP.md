@@ -5,7 +5,7 @@
 
 | Milestone | วันที่ | เป้าหมาย | เกณฑ์สำเร็จ |
 |---|---|---|---|
-| M0 Groundwork | 2026-11-11 | GitHub, standard, CI, Rails + PostgreSQL, Auth (Keycloak) + Role (user/admin) | ทีม merge PR แรกผ่าน CI ได้ |
+| M0 Groundwork | 2026-11-11 | GitHub, standard, CI, Rails + SQLite, Auth (Keycloak) + Role (user/admin) | ทีม merge PR แรกผ่าน CI ได้ |
 | M1 ลงสินค้าและอนุมัติ | 2026-11-12 | ผู้ขายลงสินค้า, Admin approve/reject | สินค้าเดินครบทุกสถานะตั้งแต่ draft ถึง approved |
 | M2 จัดและประมูล FPSBA | 2026-11-13 | Admin สร้างการประมูล, ผู้ใช้เสนอราคาแบบปิดผนึก | เสนอราคาได้ตามกติกาครบทุกข้อ |
 | M3 ปิดการประมูลและขึ้นระบบ | 2026-11-14 | ปิดอัตโนมัติ, ประกาศผู้ชนะ, แจ้งเตือนอีเมล, deploy production, analytics | Release v0.1 Beta มีการประมูลจริงจบอย่างน้อย 1 รอบ |
