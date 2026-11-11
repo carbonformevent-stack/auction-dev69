@@ -66,8 +66,19 @@ jobs:
       RAILS_ENV: test
 
     steps:
+      # spec ไม่ต้องพึ่ง package นี้ (gem sqlite3 มี SQLite ในตัว, แอปไม่สร้าง variant รูป) — ติดตั้งไว้ให้เหมือนเครื่อง dev
+      # mirror ของ Ubuntu ล่ม/DNS พังเคยทำให้ทั้ง job fail → ลองซ้ำ 3 รอบ จำกัดเวลา และไม่ให้ขั้นนี้ทำให้ job fail
       - name: Install packages
-        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips sqlite3
+        continue-on-error: true
+        timeout-minutes: 6
+        run: |
+          for attempt in 1 2 3; do
+            sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 update &&
+              sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=20 install --no-install-recommends -y libvips sqlite3 &&
+              exit 0
+            echo "apt attempt $attempt failed — retrying in 15s"; sleep 15
+          done
+          exit 1
 
       - name: Checkout code
         uses: actions/checkout@v7

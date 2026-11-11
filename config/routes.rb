@@ -21,6 +21,14 @@ Rails.application.routes.draw do
       scope module: :products do
         resource :approval, only: :create
         resource :rejection, only: :create
+        resources :auctions, only: %i[new create] # สร้างการประมูลจากสินค้าที่อนุมัติแล้ว
+      end
+    end
+
+    # index = สินค้าพร้อมจัดประมูล + รอบประมูลทั้งหมด
+    resources :auctions, only: :index do
+      scope module: :auctions do
+        resource :cancellation, only: :create
       end
     end
   end

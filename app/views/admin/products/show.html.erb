@@ -17,7 +17,16 @@
 </div>
 
 <% if @product.approved? %>
-  <p role="status" class="mt-4 rounded-xl border border-success/30 bg-success-soft px-5 py-3 text-success-ink"><strong>อนุมัติแล้ว</strong> · สินค้าพร้อมนำไปจัดประมูล</p>
+  <% active_auction = @product.active_auction %>
+  <div role="status" class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-success/30 bg-success-soft px-5 py-3 text-success-ink">
+    <% if active_auction %>
+      <p><strong>อนุมัติแล้ว</strong> · อยู่ในรอบประมูล “<%= AuctionsHelper::AUCTION_STATUS_BADGES.fetch(active_auction.status).first %>” เปิดรับราคา <%= thai_datetime_full(active_auction.starts_at) %></p>
+      <%= link_to "ดูการประมูล", admin_auctions_path, class: "btn-secondary" %>
+    <% else %>
+      <p><strong>อนุมัติแล้ว</strong> · สินค้าพร้อมนำไปจัดประมูล</p>
+      <%= link_to "สร้างการประมูล", new_admin_product_auction_path(@product), class: "btn-primary" %>
+    <% end %>
+  </div>
 <% elsif @product.rejected? %>
   <p role="status" class="mt-4 rounded-xl border border-danger/30 bg-danger-soft px-5 py-3 text-danger-ink">
     <strong>ไม่อนุมัติแล้ว</strong><% if rejection&.reason.present? %> · ผู้ขายเห็นเหตุผล: “<%= rejection.reason %>”<% end %>

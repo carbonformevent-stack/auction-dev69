@@ -1,0 +1,113 @@
+<% content_for :title, "สร้างการประมูล: #{@product.title}" %>
+<% approved_at = @product.reviews.select(&:approved?).last&.created_at || @product.updated_at %>
+<% starts_at = @form.starts_at %>
+<% ends_at = @form.ends_at %>
+<% start_error = @form.errors[:start_date].any? %>
+<% duration_error = @form.errors[:duration_minutes].any? %>
+
+<%= link_to "← สินค้าที่อนุมัติแล้ว", admin_auctions_path, class: "text-sm" %>
+<h1 class="mt-1 text-[28px] leading-snug font-bold">สร้างการประมูล</h1>
+
+<% if @form.errors[:base].any? %>
+  <div role="alert" class="mt-4 rounded-xl border border-danger/30 bg-danger-soft px-5 py-3 text-danger-ink">
+    <% @form.errors[:base].each do |message| %><p>ข้อผิดพลาด: <%= message %></p><% end %>
+  </div>
+<% end %>
+
+<div class="mt-5 flex flex-wrap items-start gap-6" data-controller="auction-form">
+  <%= form_with model: @form, scope: :auction, url: admin_product_auctions_path(@product), method: :post,
+        class: "flex min-w-0 flex-[999_1_600px] flex-col gap-4" do |f| %>
+
+    <section class="card flex flex-wrap items-center gap-4 p-4" aria-label="สินค้า">
+      <%= product_thumb(@product.cover_image, alt: "", class_name: "size-22 rounded-[10px]") %>
+      <div class="min-w-0 flex-[1_1_240px]">
+        <p class="text-[13px] text-ink-2"><%= category_label(@product.category) %> · ผู้ขาย <%= @product.seller.display_name %> · อนุมัติ <%= thai_short_time(approved_at) %></p>
+        <p class="text-lg leading-snug font-semibold break-words"><%= link_to @product.title, admin_product_path(@product), class: "text-ink no-underline hover:underline" %></p>
+      </div>
+      <%= status_badge(@product) %>
+    </section>
+
+    <section class="card flex flex-col gap-1.5">
+      <%= f.label :auction_type, class: "text-sm font-medium" do %>วิธีประมูล <span class="text-danger" aria-hidden="true">*</span><% end %>
+      <%= f.select :auction_type, auction_type_options(@form.auction_type), {}, class: "field-input", aria: { describedby: "auction-type-hint" } %>
+      <p id="auction-type-hint" class="text-[13px] text-ink-2"><%= AuctionsHelper::AUCTION_TYPE_HINTS.fetch("fpsba") %></p>
+    </section>
+
+    <section class="card flex flex-col gap-4" aria-labelledby="auction-period-title">
+      <div class="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 id="auction-period-title" class="text-lg font-semibold">ช่วงเวลาประมูล</h2>
+        <span class="rounded-full bg-accent-soft px-2.5 py-0.5 text-[13px] font-semibold text-accent-ink">ผู้ขายเสนอ <%= duration_label(@product.desired_duration_minutes) %></span>
+      </div>
+
+      <div class="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-3">
+        <div>
+          <%= f.label :start_date, "วันที่เริ่ม", class: "field-label" %>
+          <%= f.date_field :start_date, min: Date.current.iso8601, required: true, class: "field-input",
+                aria: { invalid: start_error || nil, describedby: ("start_date-errors" if start_error) },
+                data: { auction_form_target: "date", action: "input->auction-form#update" } %>
+        </div>
+        <div>
+          <%= f.label :start_time, "เวลาเริ่ม", class: "field-label" %>
+          <%= f.time_field :start_time, required: true, class: "field-input",
+                aria: { invalid: start_error || nil, describedby: ("start_date-errors" if start_error) },
+                data: { auction_form_target: "time", action: "input->auction-form#update" } %>
+        </div>
+      </div>
+
+      <fieldset>
+        <legend class="mb-2 text-sm font-medium">ระยะเวลา</legend>
+        <div class="flex flex-wrap gap-2">
+          <% @form.duration_choices.each do |minutes| %>
+            <label class="flex min-h-11 cursor-pointer items-center rounded-lg border border-line-strong bg-surface px-4 text-sm font-medium has-checked:border-[1.5px] has-checked:border-primary has-checked:bg-primary-soft has-checked:text-primary-ink has-focus-visible:shadow-[0_0_0_3px_var(--color-ring)]">
+              <%= f.radio_button :duration_minutes, minutes, class: "sr-only",
+                    data: { auction_form_target: "duration", label: duration_label(minutes), action: "change->auction-form#update" } %>
+              <%= duration_label(minutes) %><%= " · ผู้ขายเสนอ" if @form.seller_duration?(minutes) %>
+            </label>
+          <% end %>
+        </div>
+        <%= field_errors(@form, :duration_minutes) %>
+      </fieldset>
+
+      <div class="flex flex-wrap gap-3 rounded-[10px] bg-muted px-4 py-3.5" aria-live="polite">
+        <div class="flex-[1_1_200px]">
+          <p class="text-[13px] text-ink-2">เปิดรับราคา</p>
+          <p class="font-semibold" data-auction-form-target="startText"><%= thai_datetime_full(starts_at) %></p>
+        </div>
+        <div class="flex-[1_1_200px]">
+          <p class="text-[13px] text-ink-2">ปิดประมูลอัตโนมัติ</p>
+          <p class="font-semibold" data-auction-form-target="endText"><%= thai_datetime_full(ends_at) %></p>
+        </div>
+      </div>
+
+      <%= field_errors(@form, :start_date) %>
+      <p role="alert" hidden data-auction-form-target="pastError" class="field-error mt-0">ข้อผิดพลาด: เวลาเริ่มต้องอยู่หลังเวลาปัจจุบัน</p>
+      <p class="text-[13px] text-ink-2">ระยะเวลา 1 ชั่วโมง – 7 วัน · เวลาประเทศไทย (UTC+7)</p>
+    </section>
+
+    <section class="card flex flex-col gap-1.5">
+      <label for="auction-starting-price" class="text-sm font-medium">ราคาเริ่มต้น</label>
+      <div class="flex">
+        <span aria-hidden="true" class="flex items-center rounded-l-lg border border-r-0 border-line bg-muted-2 px-3 text-ink-2">฿</span>
+        <input id="auction-starting-price" value="<%= number_with_delimiter(@product.starting_price) %>" readonly aria-describedby="auction-starting-price-hint"
+               class="min-h-11 min-w-0 flex-1 rounded-r-lg border border-line bg-muted px-3 text-lg tabular-nums">
+      </div>
+      <p id="auction-starting-price-hint" class="text-[13px] text-ink-2">คัดลอกจากสินค้า ณ เวลาสร้าง แก้ไขไม่ได้</p>
+    </section>
+
+    <div class="flex flex-wrap justify-end gap-2.5">
+      <%= link_to "ยกเลิก", admin_auctions_path, class: "btn-secondary" %>
+      <%= f.submit "สร้างการประมูล", class: "btn-primary cursor-pointer px-[22px]" %>
+    </div>
+  <% end %>
+
+  <aside class="card flex-[1_1_280px] min-w-0 lg:max-w-[360px]" aria-labelledby="auction-summary-title">
+    <h2 id="auction-summary-title" class="mb-3 text-base font-semibold">สรุป</h2>
+    <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-[15px]">
+      <dt class="text-ink-2">วิธีประมูล</dt><dd class="text-right">FPSBA</dd>
+      <dt class="text-ink-2">ราคาเริ่มต้น</dt><dd class="text-right tabular-nums"><%= baht(@product.starting_price) %></dd>
+      <dt class="text-ink-2">ระยะเวลา</dt><dd class="text-right" data-auction-form-target="durationText"><%= duration_label(@form.duration_minutes) %></dd>
+      <dt class="text-ink-2">สถานะหลังสร้าง</dt><dd class="text-right">กำหนดการ</dd>
+    </dl>
+    <p class="mt-4 border-t border-line pt-3.5 text-[13px] text-ink-2">กำหนดการ → กำลังประมูล → ปิดแล้ว → ส่งมอบแล้ว · ยกเลิกได้ก่อนเริ่ม</p>
+  </aside>
+</div>

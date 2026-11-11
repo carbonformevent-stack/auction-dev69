@@ -34,8 +34,8 @@ erDiagram
 | `starting_price` | integer, not null | **คัดลอก** จากสินค้าตอนสร้าง (snapshot — สินค้าเปลี่ยนภายหลังไม่กระทบ) |
 | `starts_at`, `ends_at` | datetime, not null | check constraint `ends_at > starts_at` |
 | `status` | integer enum, not null | ดู state machine ด้านล่าง |
-| `settings` | jsonb, default `{}` | ค่าเฉพาะวิธี (เช่น English: `min_increment`; Dutch: `decrement`, `floor_price`) |
-| `winner_bid_id` | bigint FK → bids, nullable | กำหนดตอนปิด |
+| `settings` | json, default `{}` (SQLite ไม่มี jsonb) | ค่าเฉพาะวิธี (เช่น English: `min_increment`; Dutch: `decrement`, `floor_price`) |
+| `winner_bid_id` | bigint FK → bids, nullable | กำหนดตอนปิด (FK เพิ่มตอนสร้างตาราง `bids`) |
 | `created_by_id` | bigint FK → users, not null | Admin ที่สร้าง |
 
 Index / constraint:

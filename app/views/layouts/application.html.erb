@@ -23,9 +23,14 @@
           <div class="flex items-center gap-2">
             <nav aria-label="<%= admin_area? ? "เมนูแอดมิน" : "เมนูหลัก" %>" class="flex flex-wrap items-center gap-1 text-sm font-medium">
               <% if admin_area? %>
+                <% auctions_area = controller_path.start_with?("admin/auctions", "admin/products/auctions") %>
+                <% queue_area = controller_path.start_with?("admin/products") && !auctions_area %>
                 <%= link_to "คิวตรวจสอบ", admin_products_path,
-                      aria: { current: ("page" if controller_path.start_with?("admin/products")) },
-                      class: nav_link_classes(current: controller_path.start_with?("admin/products")) %>
+                      aria: { current: ("page" if queue_area) },
+                      class: nav_link_classes(current: queue_area) %>
+                <%= link_to "การประมูล", admin_auctions_path,
+                      aria: { current: ("page" if auctions_area) },
+                      class: nav_link_classes(current: auctions_area) %>
                 <%= link_to "กลับหน้าผู้ใช้", products_path, class: nav_link_classes %>
               <% elsif current_user.admin? %>
                 <%= link_to "แอดมิน", admin_products_path, class: nav_link_classes %>

@@ -1,0 +1,102 @@
+<% content_for :title, "การประมูล" %>
+
+<h1 class="text-[28px] leading-snug font-bold">การประมูล</h1>
+<p class="mt-1 text-[15px] text-ink-2">นำสินค้าที่อนุมัติแล้วไปจัดประมูล และดูรอบประมูลทั้งหมด</p>
+
+<section class="mt-6" aria-labelledby="ready-title">
+  <h2 id="ready-title" class="text-lg font-semibold">สินค้าที่อนุมัติแล้ว <span class="font-normal text-ink-2 tabular-nums">(<%= @ready_products.size %>)</span></h2>
+
+  <% if @ready_products.empty? %>
+    <div class="empty-state mt-3 bg-surface">
+      <p class="font-semibold">ยังไม่มีสินค้าที่รอจัดประมูล</p>
+      <p class="mt-1 text-sm text-ink-2">สินค้าที่อนุมัติในคิวตรวจสอบจะมาอยู่ที่นี่</p>
+    </div>
+  <% else %>
+    <div class="card relative mt-3 overflow-x-auto p-0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">สินค้า</th>
+            <th scope="col">ผู้ขาย</th>
+            <th scope="col" class="text-right">ราคาเริ่มต้น</th>
+            <th scope="col">ผู้ขายเสนอ</th>
+            <th scope="col"><span class="sr-only">การทำงาน</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @ready_products.each do |product| %>
+            <tr data-ready-product="<%= product.id %>">
+              <td>
+                <div class="flex items-center gap-3">
+                  <%= product_thumb(product.cover_image, alt: "", class_name: "size-12") %>
+                  <div class="min-w-0">
+                    <%= link_to product.title, admin_product_path(product), class: "block max-w-[280px] truncate leading-snug font-semibold text-ink no-underline hover:underline" %>
+                    <p class="text-[13px] text-ink-2"><%= category_label(product.category) %></p>
+                  </div>
+                </div>
+              </td>
+              <td class="text-sm"><%= product.seller.display_name %></td>
+              <td class="text-right font-semibold tabular-nums"><%= baht(product.starting_price) %></td>
+              <td class="text-sm"><%= duration_label(product.desired_duration_minutes) %></td>
+              <td class="text-right">
+                <%= link_to "สร้างการประมูล", new_admin_product_auction_path(product), aria: { label: "สร้างการประมูล #{product.title}" }, class: "btn-outline" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
+
+<section class="mt-8" aria-labelledby="auctions-title">
+  <h2 id="auctions-title" class="text-lg font-semibold">รอบประมูล <span class="font-normal text-ink-2 tabular-nums">(<%= @auctions.size %>)</span></h2>
+
+  <% if @auctions.empty? %>
+    <div class="empty-state mt-3 bg-surface">
+      <p class="font-semibold">ยังไม่มีรอบประมูล</p>
+    </div>
+  <% else %>
+    <div class="card relative mt-3 overflow-x-auto p-0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">สินค้า</th>
+            <th scope="col">สถานะ</th>
+            <th scope="col">เปิดรับราคา</th>
+            <th scope="col">ปิดประมูล</th>
+            <th scope="col" class="text-right">ราคาเริ่มต้น</th>
+            <th scope="col"><span class="sr-only">การทำงาน</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @auctions.each do |auction| %>
+            <tr data-auction="<%= auction.id %>" data-status="<%= auction.status %>">
+              <td>
+                <div class="flex items-center gap-3">
+                  <%= product_thumb(auction.product.cover_image, alt: "", class_name: "size-12") %>
+                  <div class="min-w-0">
+                    <%= link_to auction.product.title, admin_product_path(auction.product), class: "block max-w-[260px] truncate leading-snug font-semibold text-ink no-underline hover:underline" %>
+                    <p class="text-[13px] text-ink-2"><%= auction_type_label(auction) %> · <%= duration_label(auction.duration_minutes) %> · โดย <%= auction.created_by.display_name %></p>
+                  </div>
+                </div>
+              </td>
+              <td><%= auction_status_badge(auction, size: :sm) %></td>
+              <td class="text-sm whitespace-nowrap"><%= thai_datetime_full(auction.starts_at) %></td>
+              <td class="text-sm whitespace-nowrap"><%= thai_datetime_full(auction.ends_at) %></td>
+              <td class="text-right font-semibold tabular-nums"><%= baht(auction.starting_price) %></td>
+              <td class="text-right">
+                <% if auction.cancellable? %>
+                  <%= button_to "ยกเลิก", admin_auction_cancellation_path(auction),
+                        aria: { label: "ยกเลิกการประมูล #{auction.product.title}" },
+                        form: { data: { turbo_confirm: "ยกเลิกการประมูล \"#{auction.product.title}\"? สินค้าจะกลับไปรอจัดประมูลใหม่" } },
+                        class: "btn-danger cursor-pointer" %>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</section>
