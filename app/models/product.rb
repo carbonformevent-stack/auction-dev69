@@ -21,6 +21,8 @@ class Product < ApplicationRecord
   has_many :reviews, -> { order(:created_at, :id) }, class_name: "ProductReview",
                                                        inverse_of: :product, dependent: :restrict_with_exception
 
+  has_many :auctions, dependent: :restrict_with_exception
+
   has_many_attached :images
   has_one_attached :certificate
 
@@ -42,6 +44,16 @@ class Product < ApplicationRecord
 
   scope :review_queue, -> { pending_review.order(:submitted_at, :id) }
   scope :for_admin_review, -> { includes(:seller, reviews: :reviewer).with_attached_images.with_attached_certificate }
+  # อนุมัติแล้วและยังไม่มีรอบประมูลที่ active — พร้อมให้ Admin จัดประมูล (รอบที่ยกเลิกแล้วจัดใหม่ได้)
+  scope :ready_for_auction, -> { approved.where.not(id: Auction.active.select(:product_id)) }
+
+  def active_auction
+    auctions.active.first
+  end
+
+  def ready_for_auction?
+    approved? && !auctions.active.exists?
+  end
 
   def editable?
     draft? || rejected?

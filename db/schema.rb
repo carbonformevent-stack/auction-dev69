@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_11_060001) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_11_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.string "name", null: false
     t.string "record_type", null: false
@@ -37,6 +37,29 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_060001) do
     t.bigint "blob_id", null: false
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
+  end
+
+  create_table "auctions", force: :cascade do |t|
+    t.integer "product_id", null: false
+    t.integer "auction_type", default: 0, null: false
+    t.integer "starting_price", null: false
+    t.datetime "starts_at", null: false
+    t.datetime "ends_at", null: false
+    t.integer "status", default: 0, null: false
+    t.json "settings", default: {}, null: false
+    t.bigint "winner_bid_id"
+    t.integer "created_by_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["created_by_id"], name: "index_auctions_on_created_by_id"
+    t.index ["product_id", "created_at"], name: "index_auctions_on_product_id_and_created_at"
+    t.index ["product_id"], name: "index_auctions_one_active_per_product", unique: true, where: "status IN (0, 1)"
+    t.index ["status", "ends_at"], name: "index_auctions_on_status_and_ends_at"
+    t.index ["status", "starts_at"], name: "index_auctions_on_status_and_starts_at"
+    t.check_constraint "auction_type IN (0)", name: "auctions_auction_type_valid"
+    t.check_constraint "ends_at > starts_at", name: "auctions_ends_after_start"
+    t.check_constraint "starting_price BETWEEN 1 AND 20000", name: "auctions_starting_price_range"
+    t.check_constraint "status IN (0, 1, 2, 3, 4)", name: "auctions_status_valid"
   end
 
   create_table "product_reviews", force: :cascade do |t|
@@ -85,6 +108,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_11_060001) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "auctions", "products"
+  add_foreign_key "auctions", "users", column: "created_by_id"
   add_foreign_key "product_reviews", "products"
   add_foreign_key "product_reviews", "users", column: "reviewer_id"
   add_foreign_key "products", "users", column: "seller_id"
