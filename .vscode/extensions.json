@@ -5,7 +5,7 @@
     "eamodio.gitlens",
     "aliariff.vscode-erb-beautify",
     "bradlc.vscode-tailwindcss",
-    "ckolkman.vscode-postgres",
+    "qwtel.sqlite-viewer",
     "EditorConfig.EditorConfig"
   ]
 }

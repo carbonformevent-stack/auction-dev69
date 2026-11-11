@@ -12,7 +12,7 @@
 | ส่วน | เทคโนโลยี |
 |---|---|
 | Language / Framework | Ruby 4.0.9, Rails 8.1 |
-| Database | PostgreSQL 17 |
+| Database | SQLite 3 (ไฟล์ใน `storage/`, production ใช้ Railway Volume) |
 | Authentication | Devise + `omniauth_openid_connect` → **Keycloak** (ไม่มี password ในระบบ) |
 | Authorization | `User#role` enum: `user`, `admin` |
 | Frontend | Hotwire (Turbo/Stimulus) + Tailwind CSS |
@@ -20,27 +20,22 @@
 | File storage | Active Storage + S3-compatible storage |
 | Test / Lint / Security | RSpec, FactoryBot, shoulda-matchers / RuboCop (omakase + rspec) / Brakeman, bundler-audit |
 | CI | GitHub Actions (`.github/workflows/ci.yml`) |
-| Deploy | [Railway](https://railway.com/) (app + PostgreSQL) |
+| Deploy | [Railway](https://railway.com/) (app + Volume สำหรับ SQLite) |
 
 ## Setup เครื่อง (local development)
 
-ต้องมี: [mise](https://mise.jdx.dev/) (หรือ rbenv/asdf), PostgreSQL 17 (Docker หรือ Homebrew), libvips, libpq
+ต้องมี: [mise](https://mise.jdx.dev/) (หรือ rbenv/asdf), SQLite 3, libvips
 
 ```bash
 # 1. Ruby ตาม .ruby-version
 mise install ruby@4.0.9 && mise use ruby@4.0.9
 
-# 2. PostgreSQL สำหรับ dev
-docker compose up -d db                 # แบบ Docker (port 5432, postgres/postgres)
-# หรือ macOS: brew install postgresql@17 && brew services start postgresql@17
-#   แล้วปล่อย DB_HOST/DB_USERNAME/DB_PASSWORD ใน .env ว่าง (ใช้ unix socket)
-
-# 3. Environment variables — ห้าม commit .env
+# 2. Environment variables — ห้าม commit .env
 cp .env.example .env
 # ใส่ค่า KEYCLOAK_* ของ dev realm
 # ขอ config/master.key จากหัวหน้าทีมทางช่องทางส่วนตัว (ห้าม commit)
 
-# 4. ติดตั้ง gem, สร้าง database, start server
+# 3. ติดตั้ง gem, สร้าง database (storage/development.sqlite3), start server
 bin/setup
 ```
 
@@ -78,8 +73,6 @@ bin/dev                           # start server + Tailwind watcher (Procfile.de
 
 | ตัวแปร | ใช้ที่ |
 |---|---|
-| `DATABASE_URL` | production (Railway inject ให้) |
-| `DB_HOST`, `DB_PORT`, `DB_USERNAME`, `DB_PASSWORD` | dev / test |
 | `KEYCLOAK_ISSUER`, `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET` | authentication |
 | `APP_URL` (dev) / `APP_HOST`, `RAILWAY_PUBLIC_DOMAIN` (production) | redirect URI, host authorization, mailer |
 | `RAILS_MASTER_KEY` | production |
@@ -91,11 +84,12 @@ bin/dev                           # start server + Tailwind watcher (Procfile.de
 Keycloak client ของ production ต้องเพิ่ม redirect URI `https://<domain>/users/auth/keycloak/callback`
 
 Railway build จาก `Dockerfile` ตามค่าใน `railway.json` (health check ที่ `/up`)
-ทุกครั้งที่ start server จะรัน `bin/rails db:prepare` อัตโนมัติ ซึ่งสร้าง/migrate ทั้ง primary, cache, queue, cable
+ทุกครั้งที่ start server จะรัน `bin/rails db:prepare` อัตโนมัติ ซึ่งสร้าง/migrate ทั้ง primary, cache, queue, cable (ไฟล์ SQLite 4 ไฟล์ใน `/rails/storage`)
 
 ### ตั้งค่าครั้งแรก (ใน Railway dashboard)
 1. **New Project → Deploy from GitHub repo** → `carbonformevent-stack/auction-dev69` branch `main`
-2. ใน project เดียวกัน: **+ New → Database → PostgreSQL** และ **+ New → Bucket**
+2. ใน project เดียวกัน: **+ New → Bucket** แล้วที่ web service **คลิกขวา → Attach Volume** mount path `/rails/storage`
+   (ถ้าไม่มี Volume ข้อมูล SQLite จะหายทุกครั้งที่ deploy และ scale ได้แค่ 1 replica)
 3. ตั้ง Variables ของ web service ตามตารางด้านล่าง
 4. **Settings → Networking → Generate Domain**
 5. **Settings → Deploy → เปิด "Wait for CI"** เพื่อ deploy เฉพาะ commit ที่ CI ผ่าน
@@ -103,9 +97,9 @@ Railway build จาก `Dockerfile` ตามค่าใน `railway.json` (he
 ### Environment variables
 | ตัวแปร | ค่า | หมายเหตุ |
 |---|---|---|
-| `DATABASE_URL` | `${{Postgres.DATABASE_URL}}` | reference variable — cache/queue/cable ใช้ server เดียวกัน ชื่อ DB ต่อท้าย `_cache`, `_queue`, `_cable` |
 | `RAILS_MASTER_KEY` | เนื้อหาไฟล์ `config/master.key` | **ห้าม commit** |
 | `SOLID_QUEUE_IN_PUMA` | `true` | รัน background job ใน process เดียวกับ web |
+| `RAILWAY_RUN_UID` | `0` | Volume ถูก mount เป็น root — ต้องตั้งเพื่อให้ container เขียนไฟล์ SQLite ได้ |
 | `S3_BUCKET` | `${{Bucket.BUCKET}}` | Active Storage |
 | `S3_ACCESS_KEY_ID` | `${{Bucket.ACCESS_KEY_ID}}` | |
 | `S3_SECRET_ACCESS_KEY` | `${{Bucket.SECRET_ACCESS_KEY}}` | |
@@ -116,7 +110,7 @@ Railway build จาก `Dockerfile` ตามค่าใน `railway.json` (he
 | `KEYCLOAK_CLIENT_ID` / `KEYCLOAK_CLIENT_SECRET` | จาก Keycloak client | **ห้าม commit** |
 | `MAILER_SENDER` | อีเมลผู้ส่ง | |
 
-> ชื่อ service (`Postgres`, `Bucket`) ใน `${{...}}` ต้องตรงกับชื่อใน Railway project
+> ชื่อ service (`Bucket`) ใน `${{...}}` ต้องตรงกับชื่อใน Railway project
 > ถ้าใช้ Cloudflare R2 / AWS S3 แทน ให้ใส่ค่า `S3_*` ตรง ๆ
 
 ## เอกสาร
