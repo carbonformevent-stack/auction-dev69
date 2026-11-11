@@ -1,46 +1,77 @@
 <% content_for :title, @product.title %>
+<% content_for :mobile_bar do %>
+  <%= render "shared/mobile_bar", title: "รายละเอียดสินค้า", back_path: products_path %>
+<% end %>
+<% rejection = @product.latest_rejection if @product.rejected? %>
 
-<%= link_to "← สินค้าของฉัน", products_path, class: "text-sm text-primary" %>
+<%= link_to "← สินค้าของฉัน", products_path, class: "hidden text-sm sm:inline" %>
 
-<div class="mt-2 flex flex-wrap items-start justify-between gap-3">
-  <div class="min-w-0">
-    <p class="text-sm text-ink-2"><%= category_label(@product.category) %></p>
-    <h1 class="text-[28px] leading-snug font-bold break-words"><%= @product.title %></h1>
-  </div>
+<%# มือถือ: ป้ายสถานะอยู่เหนือชื่อ / desktop: อยู่ขวาของชื่อ (flex-row-reverse) %>
+<div class="flex flex-col items-start gap-2 sm:mt-1 sm:flex-row-reverse sm:justify-between sm:gap-3">
   <%= status_badge(@product) %>
+  <div class="min-w-0">
+    <h1 class="text-[22px] leading-snug font-bold break-words sm:text-[28px]"><%= @product.title %></h1>
+    <p class="mt-0.5 text-sm text-ink-2 sm:hidden"><%= category_label(@product.category) %> · ราคาเริ่มต้น <strong class="text-ink"><%= baht(@product.starting_price) %></strong></p>
+  </div>
 </div>
 
-<% if @product.rejected? && (rejection = @product.latest_rejection) %>
-  <div role="status" class="mt-4 rounded-xl border border-danger/30 bg-danger-soft px-4 py-3 text-danger-ink">
-    <p class="font-semibold">ไม่อนุมัติ — เหตุผลจากทีมตรวจสอบ</p>
-    <p class="mt-1 whitespace-pre-line"><%= rejection.reason %></p>
-    <p class="mt-1 text-sm">แก้ไขสินค้าแล้วกด "ส่งตรวจอีกครั้ง"</p>
+<% if @product.rejected? %>
+  <div role="alert" class="mt-4 flex gap-3 rounded-xl border border-danger bg-danger-soft p-4 text-danger-ink sm:px-5 sm:py-[18px]">
+    <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="mt-0.5 shrink-0"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16.5v.01"/></svg>
+    <div class="min-w-0 flex-1">
+      <p class="font-semibold">
+        <span class="sm:hidden">เหตุผลจากทีมตรวจสอบ</span>
+        <span class="hidden sm:inline">ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่</span>
+      </p>
+      <% if rejection %>
+        <p class="mt-1 whitespace-pre-line">“<%= rejection.reason %>”</p>
+        <p class="mt-1 text-sm"><%= thai_date_be(rejection.created_at) %></p>
+      <% end %>
+    </div>
+    <%= link_to "แก้ไขและส่งใหม่", edit_product_path(@product), class: "btn-primary hidden self-center sm:inline-flex" %>
   </div>
 <% elsif @product.pending_review? %>
-  <p role="status" class="mt-4 rounded-xl border border-line bg-accent-soft px-4 py-3 text-accent-ink">กำลังรอทีมตรวจสอบ — แก้ไขไม่ได้ระหว่างนี้</p>
+  <p role="status" class="mt-4 flex gap-3 rounded-xl border border-line bg-accent-soft px-4 py-3 text-accent-ink sm:px-5">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="mt-0.5 shrink-0"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <span><strong>อยู่ระหว่างตรวจสอบ</strong> · ส่งเมื่อ <%= thai_short_time(@product.submitted_at) %> โดยทั่วไปใช้เวลา 1–2 วันทำการ ระหว่างนี้แก้ไขสินค้าไม่ได้</span>
+  </p>
 <% elsif @product.approved? %>
-  <p role="status" class="mt-4 rounded-xl border border-success/30 bg-success-soft px-4 py-3 text-success">อนุมัติแล้ว รอ Admin นำไปจัดประมูล</p>
+  <p role="status" class="mt-4 flex gap-3 rounded-xl border border-success/30 bg-success-soft px-4 py-3 text-success-ink sm:px-5">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-0.5 shrink-0"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <span><strong>อนุมัติแล้ว — แก้ไขไม่ได้</strong> · รอ Admin กำหนดวัน-เวลาประมูล</span>
+  </p>
 <% end %>
 
-<div class="mt-4 flex flex-wrap gap-3">
-  <% if @product.submittable_by?(current_user) %>
-    <%= button_to (@product.rejected? ? "ส่งตรวจอีกครั้ง" : "ส่งตรวจ"), product_submission_path(@product), class: "btn-primary cursor-pointer" %>
-  <% end %>
-  <% if @product.editable_by?(current_user) %>
-    <%= link_to "แก้ไข", edit_product_path(@product), class: "btn-secondary" %>
-  <% end %>
-  <% if @product.destroyable_by?(current_user) %>
-    <%= button_to "ลบ", product_path(@product), method: :delete, class: "btn-danger cursor-pointer",
-          form: { data: { turbo_confirm: "ลบสินค้านี้? ย้อนกลับไม่ได้" } } %>
-  <% end %>
-</div>
-
-<div class="mt-6 grid gap-6 lg:grid-cols-[1fr_340px]">
-  <div class="flex min-w-0 flex-col gap-6">
-    <%= render "products/details", product: @product %>
+<%# แบบร่างเท่านั้นที่มีปุ่มในหน้านี้ — สินค้าที่ถูกตีกลับใช้ปุ่มใน banner (มือถือ: แถบล่าง) %>
+<% if @product.draft? %>
+  <div class="mt-4 flex flex-wrap gap-3">
+    <% if @product.submittable_by?(current_user) %>
+      <%= button_to "ส่งตรวจสอบ", product_submission_path(@product), class: "btn-primary cursor-pointer" %>
+    <% end %>
+    <% if @product.editable_by?(current_user) %>
+      <%= link_to "แก้ไข", edit_product_path(@product), class: "btn-secondary" %>
+    <% end %>
+    <% if @product.destroyable_by?(current_user) %>
+      <%= button_to "ลบ", product_path(@product), method: :delete, class: "btn-danger cursor-pointer",
+            form: { data: { turbo_confirm: "ลบสินค้านี้? ย้อนกลับไม่ได้" } } %>
+    <% end %>
   </div>
-  <aside class="flex flex-col gap-6">
-    <%= render "products/summary", product: @product %>
-    <%= render "products/history", product: @product, show_reviewer: false %>
+<% end %>
+
+<div class="mt-6 flex flex-wrap items-start gap-6">
+  <div class="flex min-w-0 flex-[999_1_560px] flex-col gap-6">
+    <%= render "products/gallery", product: @product %>
+    <%= render "products/description", product: @product %>
+  </div>
+  <aside class="flex flex-[1_1_300px] flex-col gap-6 lg:max-w-[380px]">
+    <div class="hidden sm:block"><%= render "products/listing_summary", product: @product %></div>
+    <%= render "products/timeline", events: Products::Timeline.new(@product, audience: :seller).events %>
   </aside>
 </div>
+
+<% if @product.rejected? %>
+  <div aria-hidden="true" class="h-24 sm:hidden"></div>
+  <div data-mobile-cta class="fixed inset-x-0 bottom-0 z-20 border-t border-line bg-surface px-4 pt-3 pb-6 sm:hidden">
+    <%= link_to "แก้ไขและส่งใหม่", edit_product_path(@product), class: "btn-primary min-h-12 w-full" %>
+  </div>
+<% end %>

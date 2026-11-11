@@ -1,0 +1,30 @@
+<%# locals: (product:, ratio: "aspect-[16/10]", full_link: false) %>
+<%# แกลเลอรี: รูปใหญ่ + เลขรูป + แถวรูปย่อ (สลับด้วย gallery controller; ไม่มี JS รูปย่อเป็นลิงก์ไปไฟล์เต็ม) %>
+<% images = product.images.to_a %>
+<section aria-label="รูปสินค้า" class="card p-4" data-controller="gallery">
+  <% if images.any? %>
+    <div class="relative overflow-hidden rounded-[10px] bg-muted <%= ratio %>">
+      <%= image_tag url_for(images.first), alt: "#{product.title} รูปที่ 1", class: "size-full object-cover", data: { gallery_target: "main" } %>
+      <span data-gallery-target="counter" class="absolute right-2 bottom-2 rounded-full bg-ink/70 px-2.5 py-0.5 text-[13px] font-medium text-surface tabular-nums">1 / <%= images.size %></span>
+      <% if full_link %>
+        <%= link_to "ดูขนาดเต็ม", url_for(images.first), target: "_blank", rel: "noopener", data: { gallery_target: "full" },
+              class: "absolute top-2 right-2 flex min-h-11 items-center rounded-lg bg-surface/90 px-3 text-sm font-medium text-ink no-underline shadow-sm hover:bg-surface" %>
+      <% end %>
+    </div>
+
+    <% if images.size > 1 %>
+      <div class="mt-3 flex gap-2 overflow-x-auto sm:grid sm:grid-cols-[repeat(auto-fill,minmax(76px,1fr))] sm:overflow-visible">
+        <% images.each_with_index do |image, index| %>
+          <%= link_to url_for(image), target: "_blank", rel: "noopener",
+                aria: { label: "ดูรูปที่ #{index + 1}", current: ("true" if index.zero?) },
+                data: { gallery_target: "thumb", action: "click->gallery#select", alt: "#{product.title} รูปที่ #{index + 1}" },
+                class: "block size-14 shrink-0 overflow-hidden rounded-lg border-2 border-transparent bg-muted aria-[current=true]:border-primary sm:aspect-square sm:size-auto" do %>
+            <%= image_tag url_for(image), alt: "", class: "size-full object-cover" %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  <% else %>
+    <p class="py-6 text-center text-ink-2">ยังไม่มีรูป — ต้องมีอย่างน้อย 1 รูปก่อนส่งตรวจ</p>
+  <% end %>
+</section>

@@ -176,6 +176,106 @@ RSpec.describe "Products" do
     end
   end
 
+  describe "GET /products/:id page (seller view)" do
+    let(:admin) { create(:user, :admin, name: "สมชาย แอดมิน") }
+
+    before { sign_in seller }
+
+    it "shows a rejected product with the reason in quotes, the date in Buddhist era and a fix button" do
+      product = create(:product, :rejected, seller: seller)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไก")
+
+      get product_path(product)
+
+      expect(response.body).to include('role="alert"', "ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่", "“ขอรูปกลไก”", "แก้ไขและส่งใหม่")
+      expect(response.body).to include(edit_product_path(product), "#{Time.current.year + 543}")
+    end
+
+    it "still offers the fix button when a rejected product has no review record" do
+      product = create(:product, :rejected, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).to include("ไม่อนุมัติ — กรุณาแก้ไขแล้วส่งใหม่", edit_product_path(product))
+    end
+
+    it "does not offer a separate resubmit button for a rejected product" do
+      product = create(:product, :rejected, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).not_to include(product_submission_path(product))
+    end
+
+    it "explains a pending product and offers no editing" do
+      product = create(:product, :pending_review, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).to include("อยู่ระหว่างตรวจสอบ", "1–2 วันทำการ", "แก้ไขสินค้าไม่ได้")
+      expect(response.body).not_to include(edit_product_path(product))
+    end
+
+    it "explains an approved product without promising an email" do
+      get product_path(create(:product, :approved, seller: seller))
+
+      expect(response.body).to include("อนุมัติแล้ว — แก้ไขไม่ได้", "รอ Admin กำหนดวัน-เวลาประมูล")
+      expect(response.body).not_to include("อีเมล")
+    end
+
+    it "keeps submit, edit and delete for a draft" do
+      product = create(:product, :with_image, seller: seller)
+
+      get product_path(product)
+
+      expect(response.body).to include(product_submission_path(product), edit_product_path(product), "ลบ")
+    end
+
+    it "shows the gallery with a counter and one thumbnail link per image" do
+      product = create(:product, seller: seller)
+      product.images.attach([ image_blob, image_blob ])
+
+      get product_path(product)
+
+      expect(response.body).to include("1 / 2", 'aria-label="ดูรูปที่ 1"', 'aria-label="ดูรูปที่ 2"', 'data-controller="gallery"')
+    end
+
+    it "says so when there are no images yet" do
+      get product_path(create(:product, seller: seller))
+
+      expect(response.body).to include("ยังไม่มีรูป")
+    end
+
+    it "shows the summary without the admin only row and the draft hint" do
+      get product_path(create(:product, :pending_review, seller: seller))
+
+      expect(response.body).to include("ข้อมูลการลงสินค้า", "ไม่ได้แนบ", "รายละเอียดสินค้า")
+      expect(response.body).not_to include("(ค่าแนะนำ)", "ส่งตรวจล่าสุด")
+    end
+
+    it "shows the status history without the reviewer's identity" do
+      product = create(:product, :rejected, seller: seller)
+      create(:product_review, :rejected, product: product, reviewer: admin, reason: "ขอรูปกลไก")
+
+      get product_path(product)
+
+      expect(response.body).to include("ประวัติสถานะ", "สร้างฉบับร่าง", "ส่งตรวจสอบ")
+      expect(response.body).not_to include("สมชาย แอดมิน")
+    end
+
+    it "provides the mobile app bar with a back link and a pinned call to action for rejected products" do
+      get product_path(create(:product, :rejected, seller: seller))
+
+      expect(response.body).to include("data-mobile-bar", 'aria-label="กลับ"', "รายละเอียดสินค้า", "data-mobile-cta")
+    end
+
+    it "pins no call to action for a pending product" do
+      get product_path(create(:product, :pending_review, seller: seller))
+
+      expect(response.body).not_to include("data-mobile-cta")
+    end
+  end
+
   describe "form pages" do
     before { sign_in seller }
 

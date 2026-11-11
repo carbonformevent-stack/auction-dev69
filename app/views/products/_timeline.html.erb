@@ -1,0 +1,27 @@
+<%# locals: (events:, show_reason: false) %>
+<%# ประวัติสถานะแบบเส้นเวลา — จุดสีตามเหตุการณ์; เหตุการณ์ที่ไม่มีเวลา (รอบก่อนหน้า) แสดงเฉพาะชื่อ %>
+<% dots = { created: "bg-line-strong", submitted: "bg-line-strong", resubmitted: "bg-accent-ink", rejected: "bg-danger", approved: "bg-success" } %>
+<section class="card">
+  <h2 class="mb-3 text-base font-semibold">ประวัติสถานะ</h2>
+  <ol>
+    <% events.each do |event| %>
+      <li class="group relative flex gap-3 pb-4 last:pb-0">
+        <span aria-hidden="true" class="relative flex w-3 shrink-0 justify-center">
+          <span class="mt-1.5 size-3 rounded-full <%= dots.fetch(event.kind) %>"></span>
+          <span class="absolute top-5 -bottom-1.5 w-0.5 bg-line group-last:hidden"></span>
+        </span>
+        <div class="min-w-0">
+          <p class="text-[15px] leading-snug font-semibold"><%= event.label %></p>
+          <% if event.at || event.reviewer %>
+            <p class="text-[13px] text-ink-2">
+              <%= thai_short_time(event.at) if event.at %><% if event.reviewer %> · <%= event.reviewer.display_name %><% end %>
+            </p>
+          <% end %>
+          <% if show_reason && event.reason.present? %>
+            <p class="mt-0.5 text-sm whitespace-pre-line text-ink-2">“<%= event.reason %>”</p>
+          <% end %>
+        </div>
+      </li>
+    <% end %>
+  </ol>
+</section>
