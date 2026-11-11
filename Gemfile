@@ -73,8 +73,11 @@ group :development do
 end
 
 group :test do
-  # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "shoulda-matchers"
+
+  # System spec (browser) — Cuprite คุย Chrome ตรงผ่าน CDP ไม่ต้องติดตั้ง chromedriver
+  gem "capybara"
+  gem "cuprite"
 end
 
 gem "aws-sdk-s3", "~> 1.241", require: false

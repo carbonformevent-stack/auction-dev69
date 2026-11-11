@@ -14,5 +14,6 @@ end
 RSpec.configure do |config|
   config.include OmniAuthHelpers
   config.include Devise::Test::IntegrationHelpers, type: :request
+  config.include Devise::Test::IntegrationHelpers, type: :system
   config.after { OmniAuth.config.mock_auth[:keycloak] = nil }
 end
