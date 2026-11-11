@@ -24,35 +24,41 @@
 
 ## Setup เครื่อง (local development)
 
-ต้องมี: [mise](https://mise.jdx.dev/) (หรือ rbenv/asdf), SQLite 3, libvips
+ต้องมี: [mise](https://mise.jdx.dev/) (หรือ rbenv/asdf), SQLite 3, libvips, Docker (Rancher Desktop / Docker Desktop — ใช้รัน Keycloak)
 
 ```bash
 # 1. Ruby ตาม .ruby-version
 mise install ruby@4.0.9 && mise use ruby@4.0.9
 
-# 2. Environment variables — ห้าม commit .env
-cp .env.example .env
-# ใส่ค่า KEYCLOAK_* ของ dev realm
-# ขอ config/master.key จากหัวหน้าทีมทางช่องทางส่วนตัว (ห้าม commit)
+# 2. Keycloak สำหรับ dev (import realm "auction" ให้อัตโนมัติ ใช้เวลาเริ่มครั้งแรก ~20 วินาที)
+docker compose up -d keycloak
 
-# 3. ติดตั้ง gem, สร้าง database (storage/development.sqlite3), start server
+# 3. ติดตั้ง gem, สร้าง .env จาก .env.example (ถ้ายังไม่มี), สร้าง database, start server
 bin/setup
 ```
 
-เปิด http://localhost:3000 แล้วกด "เข้าสู่ระบบ" ระบบจะพาไป Keycloak
+เปิด http://localhost:3000 แล้วกด "เข้าสู่ระบบด้วย Keycloak"
 
-### ตั้ง Keycloak client (dev)
+### Keycloak (dev)
 
-- Client type: OpenID Connect, Client authentication: **On** (confidential)
-- Valid redirect URIs: `http://localhost:3000/users/auth/keycloak/callback`
-- Valid post logout redirect URIs: `http://localhost:3000/*`
-- ใส่ค่าใน `.env`: `KEYCLOAK_ISSUER` (เช่น `https://kc.example.com/realms/auction`), `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET`
+ค่าใน `.env.example` ชี้ Keycloak ใน Docker อยู่แล้ว (`KEYCLOAK_ISSUER=http://localhost:8080/realms/auction`, client `auction-web`)
+— ถ้ามี `.env` เก่าที่ค่า `KEYCLOAK_*` ว่าง ให้คัดลอก 3 บรรทัดนั้นจาก `.env.example` แล้วรีสตาร์ท `bin/dev`
+
+| User ตัวอย่าง | รหัสผ่าน |
+|---|---|
+| `seller@example.com`, `seller2@example.com` | `password` |
+| `admin@example.com` | `password` (ต้องตั้งเป็น admin ด้านล่าง) |
+
+- Admin console: http://localhost:8080 (`admin` / `admin`) — เพิ่ม user ได้ที่ realm **auction** → Users หรือกด Register ที่หน้า login
+- Realm / client / user ตัวอย่างอยู่ใน [config/keycloak/auction-realm.json](config/keycloak/auction-realm.json) (import เฉพาะตอน realm ยังไม่มี — แก้ไฟล์แล้วอยากโหลดใหม่: `docker compose down && docker compose up -d keycloak`)
+- secret `auction-dev-secret` เป็นค่าสำหรับเครื่อง local เท่านั้น **ห้ามใช้กับ production**
+- login ไม่ผ่าน: ดู `log/development.log` บรรทัด `[auth]` จะบอกสาเหตุ (เช่น ยังไม่ได้ตั้ง `KEYCLOAK_*` หรือ Keycloak ยังไม่ขึ้น)
 
 ### ตั้ง Admin คนแรก
 
 ```bash
 # login ผ่าน Keycloak 1 ครั้งก่อน เพื่อให้ระบบสร้าง User
-ADMIN_EMAIL=you@example.com bin/rails db:seed
+bin/rails db:seed    # ใช้ ADMIN_EMAIL จาก .env (ค่าตั้งต้น admin@example.com)
 ```
 
 ## คำสั่งที่ใช้บ่อย

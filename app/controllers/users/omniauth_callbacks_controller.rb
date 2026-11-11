@@ -10,6 +10,9 @@ module Users
     end
 
     def failure
+      error = request.env["omniauth.error"]
+      Rails.logger.warn("[auth] Keycloak login failed: #{failure_message} " \
+                        "(#{error.class}: #{error&.message.to_s.truncate(200)})")
       redirect_to new_user_session_path, alert: "เข้าสู่ระบบไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
     end
   end

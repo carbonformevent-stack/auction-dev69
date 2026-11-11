@@ -37,6 +37,15 @@ RSpec.describe "Authentication" do
 
       expect(response).to redirect_to(new_user_session_path)
     end
+
+    it "logs why the login failed" do
+      OmniAuth.config.mock_auth[:keycloak] = :invalid_credentials
+      allow(Rails.logger).to receive(:warn)
+
+      get user_keycloak_omniauth_callback_path
+
+      expect(Rails.logger).to have_received(:warn).with(/\[auth\] Keycloak login failed: Invalid credentials/)
+    end
   end
 
   describe "DELETE /sign_out" do

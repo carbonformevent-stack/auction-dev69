@@ -279,6 +279,19 @@ Devise.setup do |config|
 
   # Keycloak (OpenID Connect) — ค่าทั้งหมดอ่านจาก ENV ห้าม hardcode
   # Callback URL ที่ต้องตั้งใน Keycloak client: <APP_HOST>/users/auth/keycloak/callback
+  missing_keycloak_env = %w[KEYCLOAK_ISSUER KEYCLOAK_CLIENT_ID KEYCLOAK_CLIENT_SECRET].select { |key| ENV[key].blank? }
+  if missing_keycloak_env.any? && !Rails.env.test?
+    Rails.logger.warn("[auth] Keycloak login will fail: missing #{missing_keycloak_env.join(', ')} " \
+                      "(dev: docker compose up -d keycloak && cp .env.example .env)")
+  end
+
+  # Keycloak ใน Docker (dev) เป็น http:// แต่ gem openid_connect ค้นหา discovery ผ่าน https เสมอ
+  # อนุญาต http เฉพาะเมื่อ issuer เป็น http และไม่ใช่ production
+  if ENV["KEYCLOAK_ISSUER"].to_s.start_with?("http://") && !Rails.env.production?
+    SWD.url_builder = URI::HTTP
+    WebFinger.url_builder = URI::HTTP
+  end
+
   config.omniauth :openid_connect, {
     name: :keycloak,
     issuer: ENV["KEYCLOAK_ISSUER"],
@@ -290,6 +303,13 @@ Devise.setup do |config|
       identifier: ENV["KEYCLOAK_CLIENT_ID"],
       secret: ENV["KEYCLOAK_CLIENT_SECRET"],
       redirect_uri: "#{AppUrl.base}/users/auth/keycloak/callback"
+    },
+    # dev: ใช้ host เดียวกับที่เปิดเว็บ (localhost หรือ 127.0.0.1) ไม่งั้น session/state หายตอน callback
+    setup: lambda { |env|
+      next unless Rails.env.development?
+
+      base_url = Rack::Request.new(env).base_url
+      env["omniauth.strategy"].options.client_options.redirect_uri = "#{base_url}/users/auth/keycloak/callback"
     }
   }
 

@@ -1,0 +1,84 @@
+{
+  "realm": "auction",
+  "displayName": "Auction (dev)",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "loginWithEmailAllowed": true,
+  "duplicateEmailsAllowed": false,
+  "clients": [
+    {
+      "clientId": "auction-web",
+      "name": "Auction web (dev)",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "auction-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "http://localhost:3000",
+      "redirectUris": [
+        "http://localhost:3000/users/auth/keycloak/callback",
+        "http://127.0.0.1:3000/users/auth/keycloak/callback"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:3000/*##http://127.0.0.1:3000/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "seller@example.com",
+      "email": "seller@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Somchai",
+      "lastName": "Seller",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "seller2@example.com",
+      "email": "seller2@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Somsri",
+      "lastName": "Seller",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "admin@example.com",
+      "email": "admin@example.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Anong",
+      "lastName": "Admin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ]
+    }
+  ]
+}
