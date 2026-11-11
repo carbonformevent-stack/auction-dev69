@@ -1,2 +1,16 @@
 <h1>เข้าสู่ระบบ</h1>
 <%= button_to "เข้าสู่ระบบด้วย Keycloak", user_keycloak_omniauth_authorize_path, method: :post, data: { turbo: false } %>
+
+<%# ล็อกอินจำลองสำหรับ local development (DEV_LOGIN=1) — ไม่แสดงใน test/production %>
+<% if DevLogin.enabled? %>
+  <section class="mt-8 max-w-md rounded-xl border border-dashed border-line-strong bg-accent-soft p-5 text-accent-ink" aria-label="ล็อกอินทดสอบ">
+    <h2 class="text-base font-semibold">ล็อกอินทดสอบ (เฉพาะเครื่อง dev)</h2>
+    <p class="mt-1 text-sm">ข้าม Keycloak — ใช้บัญชีจาก <code>bin/rails db:seed</code></p>
+    <div class="mt-3 flex flex-wrap gap-3">
+      <% DevLogin::ACCOUNTS.each do |role, account| %>
+        <%= button_to "เข้าเป็น#{account[:name]}", user_keycloak_omniauth_authorize_path, method: :post, params: { role: role },
+              data: { turbo: false }, class: "btn-secondary cursor-pointer" %>
+      <% end %>
+    </div>
+  </section>
+<% end %>

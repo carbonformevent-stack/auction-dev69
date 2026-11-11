@@ -48,6 +48,17 @@ bin/setup
 - Valid post logout redirect URIs: `http://localhost:3000/*`
 - ใส่ค่าใน `.env`: `KEYCLOAK_ISSUER` (เช่น `https://kc.example.com/realms/auction`), `KEYCLOAK_CLIENT_ID`, `KEYCLOAK_CLIENT_SECRET`
 
+### ลองใช้โดยไม่มี Keycloak (ล็อกอินจำลอง)
+
+```bash
+echo "DEV_LOGIN=1" >> .env
+bin/rails db:seed        # สร้างบัญชีทดสอบ + สินค้าตัวอย่างครบทุกสถานะ (รันซ้ำได้)
+bin/dev
+```
+
+เปิด http://localhost:3000/sign_in จะมีปุ่ม **เข้าเป็นผู้ขายทดสอบ** (`seller@example.test`) และ **เข้าเป็นแอดมินทดสอบ** (`admin@example.test`)
+ปุ่มนี้ทำงานเฉพาะ `development` และต้องตั้ง `DEV_LOGIN=1` เองเท่านั้น (ดู `config/initializers/dev_login.rb`) — ใน production ปุ่มไม่แสดงและไม่มีทางใช้
+
 ### ตั้ง Admin คนแรก
 
 ```bash
